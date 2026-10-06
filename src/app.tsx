@@ -34,6 +34,7 @@ import { TextInput } from "@patternfly/react-core/dist/esm/components/TextInput/
 import { Title } from "@patternfly/react-core/dist/esm/components/Title/index.js";
 import { Toolbar, ToolbarContent, ToolbarItem } from "@patternfly/react-core/dist/esm/components/Toolbar/index.js";
 import { Flex, FlexItem } from "@patternfly/react-core/dist/esm/layouts/Flex/index.js";
+import { Grid, GridItem } from "@patternfly/react-core/dist/esm/layouts/Grid/index.js";
 import { Stack, StackItem } from "@patternfly/react-core/dist/esm/layouts/Stack/index.js";
 import ArchiveIcon from "@patternfly/react-icons/dist/esm/icons/archive-icon";
 import ArrowCircleUpIcon from "@patternfly/react-icons/dist/esm/icons/arrow-circle-up-icon";
@@ -65,8 +66,18 @@ type Status = {
     health: { listener: boolean; console: boolean; version: string | null;
               port: number; admin_port: number; listeners: number | null };
     addresses?: { listener: string | null; console: string | null; https: boolean; console_https: boolean };
+    usage?: Usage;
     services?: Record<string, string>;
     containers?: Record<string, string>;
+};
+
+type Usage = {
+    processes: { name: "listener" | "console" | "container"; memory: number | null;
+                 cpu_ns?: number | null; cpu_percent?: number | null }[];
+    memory_total: number | null;
+    data_bytes: number | null;
+    disk_free: number | null;
+    at_ns: number;
 };
 
 type Check = { installed: string; latest: string; update_available: boolean; notes: string; url: string };
@@ -175,18 +186,18 @@ function Services({ status }: { status: Status }) {
     const h = status.health;
     const a = status.addresses;
     const listening = h.listeners !== null && h.listeners !== undefined
-        ? cockpit.format(_("Port $0, $1 listening now"), h.port, h.listeners)
-        : cockpit.format(_("Port $0"), h.port);
+        ? cockpit.format(_("Listener page, port $0, $1 listening now"), h.port, h.listeners)
+        : cockpit.format(_("Listener page, port $0"), h.port);
 
     return (
         <DescriptionList isHorizontal columnModifier={{ lg: "2Col" }} aria-label={_("Services")}>
             <Row icon={h.listener ? ok : bad} state={h.listener ? _("Running") : _("Not answering")}
                  detail={listening}>
-                {_("Listener page")}: <Address url={a?.listener} port={h.port} https={!!a?.https} />
+                <Address url={a?.listener} port={h.port} https={!!a?.https} />
             </Row>
             <Row icon={h.console ? ok : bad} state={h.console ? _("Running") : _("Not answering")}
-                 detail={cockpit.format(_("Port $0"), h.admin_port)}>
-                {_("Operator's console")}: <Address url={a?.console} port={h.admin_port} https={!!a?.console_https} />
+                 detail={cockpit.format(_("Operator's console, port $0"), h.admin_port)}>
+                <Address url={a?.console} port={h.admin_port} https={!!a?.console_https} />
             </Row>
             <Row icon={plain(<ServerIcon />)} state={status.mode === "docker" ? _("Docker") : _("Native")}
                  detail={cockpit.format(_("Releases kept: $0"), status.releases.join(", "))}>
@@ -500,7 +511,7 @@ function Main({ status, admin, refresh }: { status: Status; admin: boolean; refr
     const tabs: [string, string][] = [["services", _("Services")], ["updates", _("Updates")], ["upkeep", _("Password and backups")]];
 
     return (
-        <Card>
+        <Card isFullHeight>
             <CardHeader actions={{ actions: <ServiceActions status={status} admin={admin} refresh={refresh} />, hasNoOffset: true }}>
                 <CardTitle>
                     <Title headingLevel="h2" size="lg">
@@ -518,6 +529,73 @@ function Main({ status, admin, refresh }: { status: Status; admin: boolean; refr
                 <div hidden={tab !== "services"}><Services status={status} /></div>
                 <div hidden={tab !== "updates"}><Updates status={status} admin={admin} refresh={refresh} /></div>
                 <div hidden={tab !== "upkeep"}><Upkeep admin={admin} /></div>
+            </CardBody>
+        </Card>
+    );
+}
+
+/* ── usage ───────────────────────────────────────────────────────────────── */
+
+function size(bytes: number | null | undefined): string {
+    return bytes === null || bytes === undefined ? "?" : cockpit.format_bytes(bytes);
+}
+
+function Usage({ usage }: { usage: Usage }) {
+    // CPU time is a running total; a share of it needs two readings.
+    const last = useRef<Usage | null>(null);
+    const [cpu, setCpu] = useState<Record<string, number>>({});
+
+    useEffect(() => {
+        const before = last.current;
+        last.current = usage;
+        if (!before || usage.at_ns <= before.at_ns) return;
+        const next: Record<string, number> = {};
+        for (const p of usage.processes) {
+            const q = before.processes.find(x => x.name === p.name);
+            if (p.cpu_ns != null && q?.cpu_ns != null)
+                next[p.name] = Math.max(0, (p.cpu_ns - q.cpu_ns) / (usage.at_ns - before.at_ns) * 100);
+        }
+        setCpu(next);
+    }, [usage]);
+
+    const names: Record<string, string> = {
+        listener: _("Listener page"), console: _("Operator's console"), container: _("Container"),
+    };
+
+    return (
+        <Card isFullHeight>
+            <CardHeader><CardTitle><Title headingLevel="h2" size="lg">{_("Usage")}</Title></CardTitle></CardHeader>
+            <CardBody>
+                <Stack hasGutter>
+                    {usage.processes.map(p => {
+                        const share = p.memory != null && usage.memory_total ? p.memory / usage.memory_total * 100 : 0;
+                        const load = p.cpu_percent ?? cpu[p.name];
+                        return (
+                            <StackItem key={p.name}>
+                                <Progress value={share} title={names[p.name] ?? p.name} size="sm"
+                                          label={size(p.memory)} valueText={size(p.memory)}
+                                          aria-label={cockpit.format(_("Memory used by $0"), names[p.name] ?? p.name)} />
+                                <div className="ezy-detail">
+                                    {cockpit.format(_("$0% of memory"), share.toFixed(1))}
+                                    {" · "}
+                                    {load === undefined ? _("CPU: measuring") : cockpit.format(_("CPU: $0%"), load.toFixed(1))}
+                                </div>
+                            </StackItem>
+                        );
+                    })}
+                    <StackItem>
+                        <DescriptionList isCompact isHorizontal aria-label={_("Storage")}>
+                            <DescriptionListGroup>
+                                <DescriptionListTerm>{_("Transcripts")}</DescriptionListTerm>
+                                <DescriptionListDescription>{size(usage.data_bytes)}</DescriptionListDescription>
+                            </DescriptionListGroup>
+                            <DescriptionListGroup>
+                                <DescriptionListTerm>{_("Free on disk")}</DescriptionListTerm>
+                                <DescriptionListDescription>{size(usage.disk_free)}</DescriptionListDescription>
+                            </DescriptionListGroup>
+                        </DescriptionList>
+                    </StackItem>
+                </Stack>
             </CardBody>
         </Card>
     );
@@ -564,7 +642,7 @@ function Logs() {
             <CardHeader><CardTitle><Title headingLevel="h2">{_("Log")}</Title></CardTitle></CardHeader>
             <CardBody>
                 <Toolbar>
-                    <ToolbarContent>
+                    <ToolbarContent alignItems="center">
                         <ToolbarItem>
                             <SearchInput placeholder={_("Filter")} value={filter}
                                          onChange={(_e, v) => setFilter(v)} onClear={() => setFilter("")} />
@@ -615,7 +693,12 @@ export const Application = () => {
                     <StackItem>
                         <Alert variant="info" isInline title={_("Turn on administrative access to update, restart or change the password.")} />
                     </StackItem>}
-                <StackItem><Main status={status} admin={admin} refresh={refresh} /></StackItem>
+                <StackItem>
+                    <Grid hasGutter>
+                        <GridItem xl={status.usage ? 8 : 12}><Main status={status} admin={admin} refresh={refresh} /></GridItem>
+                        {status.usage && <GridItem xl={4}><Usage usage={status.usage} /></GridItem>}
+                    </Grid>
+                </StackItem>
                 <StackItem><Logs /></StackItem>
             </Stack>
         );
