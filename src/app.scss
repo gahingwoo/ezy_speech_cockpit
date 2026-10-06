@@ -135,3 +135,9 @@ code {
     white-space: pre-wrap;
     word-break: break-word;
 }
+
+/* The second line of a status row: smaller and quieter, as in PatternFly's status card. */
+.ezy-detail {
+    color: var(--pf-t--global--text--color--subtle);
+    font-size: var(--pf-t--global--font--size--body--sm);
+}

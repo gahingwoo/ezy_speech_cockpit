@@ -13,24 +13,36 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, AlertActionCloseButton } from "@patternfly/react-core/dist/esm/components/Alert/index.js";
 import { Button } from "@patternfly/react-core/dist/esm/components/Button/index.js";
-import { Card, CardBody, CardFooter, CardHeader, CardTitle } from "@patternfly/react-core/dist/esm/components/Card/index.js";
+import { Card, CardBody, CardHeader, CardTitle } from "@patternfly/react-core/dist/esm/components/Card/index.js";
 import { ClipboardCopy } from "@patternfly/react-core/dist/esm/components/ClipboardCopy/index.js";
 import { CodeBlock, CodeBlockCode } from "@patternfly/react-core/dist/esm/components/CodeBlock/index.js";
 import { Content } from "@patternfly/react-core/dist/esm/components/Content/index.js";
 import { DescriptionList, DescriptionListDescription, DescriptionListGroup, DescriptionListTerm } from "@patternfly/react-core/dist/esm/components/DescriptionList/index.js";
 import { EmptyState, EmptyStateBody } from "@patternfly/react-core/dist/esm/components/EmptyState/index.js";
-import { Label } from "@patternfly/react-core/dist/esm/components/Label/index.js";
+import { Form, FormGroup, FormHelperText } from "@patternfly/react-core/dist/esm/components/Form/index.js";
+import { HelperText, HelperTextItem } from "@patternfly/react-core/dist/esm/components/HelperText/index.js";
+import { Icon } from "@patternfly/react-core/dist/esm/components/Icon/index.js";
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "@patternfly/react-core/dist/esm/components/Modal/index.js";
 import { Page, PageSection } from "@patternfly/react-core/dist/esm/components/Page/index.js";
 import { Progress } from "@patternfly/react-core/dist/esm/components/Progress/index.js";
+import { Radio } from "@patternfly/react-core/dist/esm/components/Radio/index.js";
 import { SearchInput } from "@patternfly/react-core/dist/esm/components/SearchInput/index.js";
 import { Spinner } from "@patternfly/react-core/dist/esm/components/Spinner/index.js";
 import { Switch } from "@patternfly/react-core/dist/esm/components/Switch/index.js";
+import { Tab, Tabs, TabTitleText } from "@patternfly/react-core/dist/esm/components/Tabs/index.js";
+import { TextInput } from "@patternfly/react-core/dist/esm/components/TextInput/index.js";
 import { Title } from "@patternfly/react-core/dist/esm/components/Title/index.js";
 import { Toolbar, ToolbarContent, ToolbarItem } from "@patternfly/react-core/dist/esm/components/Toolbar/index.js";
 import { Flex, FlexItem } from "@patternfly/react-core/dist/esm/layouts/Flex/index.js";
-import { Grid, GridItem } from "@patternfly/react-core/dist/esm/layouts/Grid/index.js";
 import { Stack, StackItem } from "@patternfly/react-core/dist/esm/layouts/Stack/index.js";
+import ArchiveIcon from "@patternfly/react-icons/dist/esm/icons/archive-icon";
+import ArrowCircleUpIcon from "@patternfly/react-icons/dist/esm/icons/arrow-circle-up-icon";
+import CheckCircleIcon from "@patternfly/react-icons/dist/esm/icons/check-circle-icon";
+import ExclamationCircleIcon from "@patternfly/react-icons/dist/esm/icons/exclamation-circle-icon";
+import ExclamationTriangleIcon from "@patternfly/react-icons/dist/esm/icons/exclamation-triangle-icon";
+import HistoryIcon from "@patternfly/react-icons/dist/esm/icons/history-icon";
+import LockIcon from "@patternfly/react-icons/dist/esm/icons/lock-icon";
+import ServerIcon from "@patternfly/react-icons/dist/esm/icons/server-icon";
 import ExternalLinkAltIcon from "@patternfly/react-icons/dist/esm/icons/external-link-alt-icon";
 import { superuser } from "superuser.js";
 import cockpit from "cockpit";
@@ -114,10 +126,6 @@ function useStatus() {
     return { status, error, missing, refresh };
 }
 
-function UpLabel({ up, what }: { up: boolean; what: string }) {
-    return <Label color={up ? "green" : "red"}>{what}: {up ? _("running") : _("not answering")}</Label>;
-}
-
 /* Where a server can be opened. Its public address when one is configured;
  * otherwise this machine's port, linked only when Cockpit itself was opened
  * by an address that reaches the machine (an IP or a local name). Through a
@@ -133,11 +141,64 @@ function Address({ url, port, https }: { url: string | null | undefined; port: n
     return <a href={target} target="_blank" rel="noopener noreferrer">{host}:{port} <ExternalLinkAltIcon /></a>;
 }
 
-function Overview({ status, admin, refresh }: { status: Status; admin: boolean; refresh: () => void }) {
-    const [busy, setBusy] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
+/* One line of status, laid out as PatternFly's status card does it: an icon
+ * and a word for the state on the left, what it is about and a detail on the
+ * right. */
+function Row({ icon, state, children, detail }: {
+    icon: React.ReactNode; state: string; children: React.ReactNode; detail?: React.ReactNode
+}) {
+    return (
+        <DescriptionListGroup>
+            <DescriptionListTerm>
+                <Flex spaceItems={{ default: "spaceItemsSm" }} alignItems={{ default: "alignItemsCenter" }} flexWrap={{ default: "nowrap" }}>
+                    <FlexItem>{icon}</FlexItem>
+                    <FlexItem><Title headingLevel="h3" size="md">{state}</Title></FlexItem>
+                </Flex>
+            </DescriptionListTerm>
+            <DescriptionListDescription>
+                <div>{children}</div>
+                {detail && <div className="ezy-detail">{detail}</div>}
+            </DescriptionListDescription>
+        </DescriptionListGroup>
+    );
+}
+
+const ok = <Icon status="success"><CheckCircleIcon /></Icon>;
+const bad = <Icon status="danger"><ExclamationCircleIcon /></Icon>;
+const warn = <Icon status="warning"><ExclamationTriangleIcon /></Icon>;
+const info = (icon: React.ReactNode) => <Icon status="info">{icon}</Icon>;
+const plain = (icon: React.ReactNode) => <Icon>{icon}</Icon>;
+
+/* ── services ────────────────────────────────────────────────────────────── */
+
+function Services({ status }: { status: Status }) {
     const h = status.health;
     const a = status.addresses;
+    const listening = h.listeners !== null && h.listeners !== undefined
+        ? cockpit.format(_("Port $0, $1 listening now"), h.port, h.listeners)
+        : cockpit.format(_("Port $0"), h.port);
+
+    return (
+        <DescriptionList isHorizontal columnModifier={{ lg: "2Col" }} aria-label={_("Services")}>
+            <Row icon={h.listener ? ok : bad} state={h.listener ? _("Running") : _("Not answering")}
+                 detail={listening}>
+                {_("Listener page")}: <Address url={a?.listener} port={h.port} https={!!a?.https} />
+            </Row>
+            <Row icon={h.console ? ok : bad} state={h.console ? _("Running") : _("Not answering")}
+                 detail={cockpit.format(_("Port $0"), h.admin_port)}>
+                {_("Operator's console")}: <Address url={a?.console} port={h.admin_port} https={!!a?.console_https} />
+            </Row>
+            <Row icon={plain(<ServerIcon />)} state={status.mode === "docker" ? _("Docker") : _("Native")}
+                 detail={cockpit.format(_("Releases kept: $0"), status.releases.join(", "))}>
+                {status.home}
+            </Row>
+        </DescriptionList>
+    );
+}
+
+function ServiceActions({ status, admin, refresh }: { status: Status; admin: boolean; refresh: () => void }) {
+    const [busy, setBusy] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const act = (verb: string) => {
         setBusy(verb);
@@ -147,72 +208,28 @@ function Overview({ status, admin, refresh }: { status: Status; admin: boolean; 
     };
 
     return (
-        <Card isFullHeight>
-            <CardHeader>
-                <CardTitle>
-                    <Title headingLevel="h2">
-                        EzySpeech {status.version ?? "?"}{" "}
-                        <Label isCompact>{status.mode === "docker" ? _("Docker") : _("Native")}</Label>
-                    </Title>
-                </CardTitle>
-            </CardHeader>
-            <CardBody>
-                <Stack hasGutter>
-                    <StackItem>
-                        <Flex>
-                            <FlexItem><UpLabel up={h.listener} what={_("Listener page")} /></FlexItem>
-                            <FlexItem><UpLabel up={h.console} what={_("Console")} /></FlexItem>
-                            {h.listeners !== null && h.listeners !== undefined &&
-                                <FlexItem><Label color="blue">{cockpit.format(_("$0 listening"), h.listeners)}</Label></FlexItem>}
-                        </Flex>
-                    </StackItem>
-                    <StackItem>
-                        <DescriptionList isCompact>
-                            <DescriptionListGroup>
-                                <DescriptionListTerm>{_("Listener page")}</DescriptionListTerm>
-                                <DescriptionListDescription>
-                                    <Address url={a?.listener} port={h.port} https={!!a?.https} />
-                                </DescriptionListDescription>
-                            </DescriptionListGroup>
-                            <DescriptionListGroup>
-                                <DescriptionListTerm>{_("Operator's console")}</DescriptionListTerm>
-                                <DescriptionListDescription>
-                                    <Address url={a?.console} port={h.admin_port} https={!!a?.console_https} />
-                                </DescriptionListDescription>
-                            </DescriptionListGroup>
-                            <DescriptionListGroup>
-                                <DescriptionListTerm>{_("Installed in")}</DescriptionListTerm>
-                                <DescriptionListDescription>{status.home}</DescriptionListDescription>
-                            </DescriptionListGroup>
-                            <DescriptionListGroup>
-                                <DescriptionListTerm>{_("Releases kept")}</DescriptionListTerm>
-                                <DescriptionListDescription>{status.releases.join(", ")}</DescriptionListDescription>
-                            </DescriptionListGroup>
-                        </DescriptionList>
-                    </StackItem>
-                    {error && <StackItem><Alert variant="danger" isInline title={_("That did not work")}>{error}</Alert></StackItem>}
-                </Stack>
-            </CardBody>
-            <CardFooter>
-                <Flex>
-                    {status.running
-                        ? <>
-                            <FlexItem>
-                                <Button variant="secondary" isDisabled={!admin || !!busy} isLoading={busy === "restart"}
-                                        onClick={() => act("restart")}>{_("Restart")}</Button>
-                            </FlexItem>
-                            <FlexItem>
-                                <Button variant="secondary" isDanger isDisabled={!admin || !!busy} isLoading={busy === "stop"}
-                                        onClick={() => act("stop")}>{_("Stop")}</Button>
-                            </FlexItem>
-                        </>
-                        : <FlexItem>
-                            <Button variant="primary" isDisabled={!admin || !!busy} isLoading={busy === "start"}
-                                    onClick={() => act("start")}>{_("Start")}</Button>
-                        </FlexItem>}
-                </Flex>
-            </CardFooter>
-        </Card>
+        <>
+            <Flex spaceItems={{ default: "spaceItemsSm" }}>
+                {status.running
+                    ? <>
+                        <FlexItem>
+                            <Button variant="secondary" isDisabled={!admin || !!busy} isLoading={busy === "restart"}
+                                    onClick={() => act("restart")}>{_("Restart")}</Button>
+                        </FlexItem>
+                        <FlexItem>
+                            <Button variant="secondary" isDanger isDisabled={!admin || !!busy} isLoading={busy === "stop"}
+                                    onClick={() => act("stop")}>{_("Stop")}</Button>
+                        </FlexItem>
+                    </>
+                    : <FlexItem>
+                        <Button variant="primary" isDisabled={!admin || !!busy} isLoading={busy === "start"}
+                                onClick={() => act("start")}>{_("Start")}</Button>
+                    </FlexItem>}
+            </Flex>
+            {error &&
+                <Alert variant="danger" isInline title={_("That did not work")}
+                       actionClose={<AlertActionCloseButton onClose={() => setError(null)} />}>{error}</Alert>}
+        </>
     );
 }
 
@@ -264,40 +281,59 @@ function Updates({ status, admin, refresh }: { status: Status; admin: boolean; r
     };
 
     const older = status.releases.filter(r => r !== status.version);
+    const previous = older[older.length - 1];
+    const notes = check?.url &&
+        <a href={check.url} target="_blank" rel="noopener noreferrer">{_("Release notes")} <ExternalLinkAltIcon /></a>;
+
+    let row;
+    if (checking && !check)
+        row = <Row icon={<Spinner size="md" isInline />} state={_("Checking")}>{_("Asking GitHub for the latest release")}</Row>;
+    else if (checkError)
+        row = <Row icon={warn} state={_("Unknown")} detail={checkError}>{_("Could not check for updates")}</Row>;
+    else if (check?.update_available)
+        row = (
+            <Row icon={info(<ArrowCircleUpIcon />)} state={_("Available")}
+                 detail={cockpit.format(_("This machine runs $0"), check.installed)}>
+                EzySpeech {check.latest} · {notes}
+            </Row>
+        );
+    else if (check)
+        row = (
+            <Row icon={ok} state={_("Up to date")} detail={_("The latest release on GitHub")}>
+                EzySpeech {check.installed} · {notes}
+            </Row>
+        );
 
     return (
-        <Card isFullHeight>
-            <CardHeader><CardTitle><Title headingLevel="h2">{_("Updates")}</Title></CardTitle></CardHeader>
-            <CardBody>
-                <Stack hasGutter>
-                    {checking && <StackItem><Spinner size="md" /> {_("Checking GitHub for the latest release...")}</StackItem>}
-                    {checkError && <StackItem><Alert variant="warning" isInline title={_("Could not check for updates")}>{checkError}</Alert></StackItem>}
-                    {check && !check.update_available &&
-                        <StackItem>
-                            <Content component="p">{cockpit.format(_("Up to date: $0 is the latest release."), check.installed)}</Content>
-                            {check.url && <a href={check.url} target="_blank" rel="noopener noreferrer">{_("What changed in it")} <ExternalLinkAltIcon /></a>}
-                        </StackItem>}
-                    {check && check.update_available &&
-                        <StackItem>
-                            <Alert variant="info" isInline title={cockpit.format(_("EzySpeech $0 is available (this is $1)"), check.latest, check.installed)}>
-                                <Content component="p">{_("The update is checked against its published SHA-256, prepared beside the running release, and switched in with a restart. If it does not come up healthy, the running release is put back.")}</Content>
-                                {check.url && <a href={check.url} target="_blank" rel="noopener noreferrer">{_("Release notes")} <ExternalLinkAltIcon /></a>}
-                            </Alert>
-                        </StackItem>}
-                    {progress && <StackItem><Progress value={progress.pct} title={progress.text} /></StackItem>}
-                    {result &&
-                        <StackItem>
-                            <Alert variant={result.ok ? "success" : "danger"} isInline title={result.text}
-                                   actionClose={<AlertActionCloseButton onClose={() => setResult(null)} />} />
-                        </StackItem>}
-                    {lines.length > 0 && !running && result && !result.ok &&
-                        <StackItem>
-                            <CodeBlock><CodeBlockCode>{lines.slice(-40).join("\n")}</CodeBlockCode></CodeBlock>
-                        </StackItem>}
-                </Stack>
-            </CardBody>
-            <CardFooter>
-                <Flex>
+        <Stack hasGutter>
+            <StackItem>
+                <DescriptionList isHorizontal columnModifier={{ lg: "2Col" }} aria-label={_("Updates")}>
+                    {row}
+                    {previous &&
+                        <Row icon={plain(<HistoryIcon />)} state={_("Kept")}
+                             detail={_("Going back to it is a restart")}>
+                            {cockpit.format(_("The release before: $0"), previous)}
+                        </Row>}
+                </DescriptionList>
+            </StackItem>
+            {check?.update_available && !running && !result &&
+                <StackItem>
+                    <Content component="p" className="ezy-detail">
+                        {_("The update is checked against its published SHA-256, prepared beside the running release, and switched in with a restart. If it does not come up healthy, the running release is put back.")}
+                    </Content>
+                </StackItem>}
+            {progress && <StackItem><Progress value={progress.pct} title={progress.text} /></StackItem>}
+            {result &&
+                <StackItem>
+                    <Alert variant={result.ok ? "success" : "danger"} isInline title={result.text}
+                           actionClose={<AlertActionCloseButton onClose={() => setResult(null)} />} />
+                </StackItem>}
+            {lines.length > 0 && !running && result && !result.ok &&
+                <StackItem>
+                    <CodeBlock><CodeBlockCode>{lines.slice(-40).join("\n")}</CodeBlockCode></CodeBlock>
+                </StackItem>}
+            <StackItem>
+                <Flex spaceItems={{ default: "spaceItemsSm" }}>
                     {(check?.update_available || running) &&
                         <FlexItem>
                             <Button variant="primary" isDisabled={!admin || running}
@@ -308,16 +344,16 @@ function Updates({ status, admin, refresh }: { status: Status; admin: boolean; r
                     <FlexItem>
                         <Button variant="secondary" isDisabled={running || checking} onClick={doCheck}>{_("Check again")}</Button>
                     </FlexItem>
-                    {older.length > 0 &&
+                    {previous &&
                         <FlexItem>
                             <Button variant="link" isDisabled={!admin || running}
-                                    onClick={() => run(["rollback"], cockpit.format(_("Back on $0."), older[older.length - 1]))}>
-                                {cockpit.format(_("Roll back to $0"), older[older.length - 1])}
+                                    onClick={() => run(["rollback"], cockpit.format(_("Back on $0."), previous))}>
+                                {cockpit.format(_("Roll back to $0"), previous)}
                             </Button>
                         </FlexItem>}
                 </Flex>
-            </CardFooter>
-        </Card>
+            </StackItem>
+        </Stack>
     );
 }
 
@@ -329,13 +365,30 @@ function Upkeep({ admin }: { admin: boolean }) {
     const [busy, setBusy] = useState<string | null>(null);
     const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
+    const [own, setOwn] = useState(false);
+    const [typed, setTyped] = useState("");
+    const [again, setAgain] = useState("");
+    const typedOk = typed.length >= 8 && typed === again;
+
+    const ask = () => { setOwn(false); setTyped(""); setAgain(""); setConfirm(true) };
+
     const newPassword = () => {
         setConfirm(false);
         setBusy("password");
-        ezyJson<{ password: string }>(["password", "--generate", "--json"])
-                .then(r => setPassword(r.password))
-                .catch((e: Error) => setMessage({ ok: false, text: e.message }))
-                .finally(() => setBusy(null));
+        if (own) {
+            // Through standard input, so it never appears in a process list.
+            const proc = cockpit.spawn([CMD, "password", "--stdin", "--json"],
+                                       { environ: ENV, superuser: "require", err: "message" });
+            proc.input(typed + "\n");
+            proc.then(() => setMessage({ ok: true, text: _("The new admin password is set; the servers restarted.") }))
+                    .catch((e: { message?: string }) => setMessage({ ok: false, text: e.message || String(e) }))
+                    .finally(() => { setBusy(null); setTyped(""); setAgain("") });
+        } else {
+            ezyJson<{ password: string }>(["password", "--generate", "--json"])
+                    .then(r => setPassword(r.password))
+                    .catch((e: Error) => setMessage({ ok: false, text: e.message }))
+                    .finally(() => setBusy(null));
+        }
     };
 
     const backup = () => {
@@ -348,41 +401,81 @@ function Upkeep({ admin }: { admin: boolean }) {
     };
 
     return (
-        <Card isFullHeight>
-            <CardHeader><CardTitle><Title headingLevel="h2">{_("Password and backups")}</Title></CardTitle></CardHeader>
-            <CardBody>
-                <Stack hasGutter>
-                    <StackItem>
-                        <Content component="p">
-                            {_("The admin password is kept only as a hash, so it cannot be shown. A new one replaces it, and both servers restart.")}
-                        </Content>
-                    </StackItem>
-                    <StackItem>
-                        <Content component="p">
-                            {_("A backup is the settings, the password hash and every transcript, as one file in /var/backups.")}
-                        </Content>
-                    </StackItem>
-                    {message && <StackItem><Alert variant={message.ok ? "success" : "danger"} isInline title={message.text} /></StackItem>}
-                </Stack>
-            </CardBody>
-            <CardFooter>
-                <Flex>
+        <Stack hasGutter>
+            <StackItem>
+                <DescriptionList isHorizontal columnModifier={{ lg: "2Col" }} aria-label={_("Password and backups")}>
+                    <Row icon={plain(<LockIcon />)} state={_("Hashed")}
+                         detail={_("A new one replaces it, and both servers restart")}>
+                        {_("The admin password is kept only as a hash, so it cannot be shown")}
+                    </Row>
+                    <Row icon={plain(<ArchiveIcon />)} state={_("Backups")}
+                         detail={_("The settings, the password hash and every transcript, as one file")}>
+                        /var/backups
+                    </Row>
+                </DescriptionList>
+            </StackItem>
+            {message &&
+                <StackItem>
+                    <Alert variant={message.ok ? "success" : "danger"} isInline title={message.text}
+                           actionClose={<AlertActionCloseButton onClose={() => setMessage(null)} />} />
+                </StackItem>}
+            <StackItem>
+                <Flex spaceItems={{ default: "spaceItemsSm" }}>
                     <FlexItem>
                         <Button variant="secondary" isDisabled={!admin || !!busy} isLoading={busy === "password"}
-                                onClick={() => setConfirm(true)}>{_("Set a new admin password")}</Button>
+                                onClick={ask}>{_("Set a new admin password")}</Button>
                     </FlexItem>
                     <FlexItem>
                         <Button variant="secondary" isDisabled={!admin || !!busy} isLoading={busy === "backup"}
                                 onClick={backup}>{_("Back up now")}</Button>
                     </FlexItem>
                 </Flex>
-            </CardFooter>
+            </StackItem>
 
             <Modal variant="small" isOpen={confirm} onClose={() => setConfirm(false)} aria-labelledby="ezy-pw-title">
                 <ModalHeader title={_("Set a new admin password?")} labelId="ezy-pw-title" />
-                <ModalBody>{_("The old one stops working at once, and anyone signed in to the console has to sign in again.")}</ModalBody>
+                <ModalBody>
+                    <Stack hasGutter>
+                        <StackItem>
+                            <Content component="p">{_("The old one stops working at once, and anyone signed in to the console has to sign in again.")}</Content>
+                        </StackItem>
+                        <StackItem>
+                            <Radio id="ezy-pw-make" name="ezy-pw" label={_("Make a strong one for me")}
+                                   isChecked={!own} onChange={() => setOwn(false)} />
+                            <Radio id="ezy-pw-own" name="ezy-pw" label={_("I will type it")}
+                                   isChecked={own} onChange={() => setOwn(true)} />
+                        </StackItem>
+                        {own &&
+                            <StackItem>
+                                <Form onSubmit={e => { e.preventDefault(); if (typedOk) newPassword() }}>
+                                    <FormGroup label={_("New password")} fieldId="ezy-pw-1">
+                                        <TextInput id="ezy-pw-1" type="password" autoComplete="new-password"
+                                                   value={typed} onChange={(_e, v) => setTyped(v)} />
+                                        <FormHelperText>
+                                            <HelperText>
+                                                <HelperTextItem variant={typed && typed.length < 8 ? "error" : "default"}>
+                                                    {_("At least 8 characters")}
+                                                </HelperTextItem>
+                                            </HelperText>
+                                        </FormHelperText>
+                                    </FormGroup>
+                                    <FormGroup label={_("Again")} fieldId="ezy-pw-2">
+                                        <TextInput id="ezy-pw-2" type="password" autoComplete="new-password"
+                                                   value={again} onChange={(_e, v) => setAgain(v)}
+                                                   validated={again && again !== typed ? "error" : "default"} />
+                                        {again && again !== typed &&
+                                            <FormHelperText>
+                                                <HelperText><HelperTextItem variant="error">{_("They do not match")}</HelperTextItem></HelperText>
+                                            </FormHelperText>}
+                                    </FormGroup>
+                                </Form>
+                            </StackItem>}
+                    </Stack>
+                </ModalBody>
                 <ModalFooter>
-                    <Button variant="primary" onClick={newPassword}>{_("Make a new password")}</Button>
+                    <Button variant="primary" isDisabled={own && !typedOk} onClick={newPassword}>
+                        {own ? _("Set this password") : _("Make a new password")}
+                    </Button>
                     <Button variant="link" onClick={() => setConfirm(false)}>{_("Cancel")}</Button>
                 </ModalFooter>
             </Modal>
@@ -396,6 +489,36 @@ function Upkeep({ admin }: { admin: boolean }) {
                 </ModalBody>
                 <ModalFooter><Button variant="primary" onClick={() => setPassword(null)}>{_("Done")}</Button></ModalFooter>
             </Modal>
+        </Stack>
+    );
+}
+
+/* ── the card that holds them ────────────────────────────────────────────── */
+
+function Main({ status, admin, refresh }: { status: Status; admin: boolean; refresh: () => void }) {
+    const [tab, setTab] = useState<string | number>("services");
+    const tabs: [string, string][] = [["services", _("Services")], ["updates", _("Updates")], ["upkeep", _("Password and backups")]];
+
+    return (
+        <Card>
+            <CardHeader actions={{ actions: <ServiceActions status={status} admin={admin} refresh={refresh} />, hasNoOffset: true }}>
+                <CardTitle>
+                    <Title headingLevel="h2" size="lg">
+                        EzySpeech {status.version ?? "?"}
+                    </Title>
+                </CardTitle>
+            </CardHeader>
+            <CardBody>
+                <Tabs isFilled activeKey={tab} onSelect={(_e, k) => setTab(k)} aria-label={_("EzySpeech")}>
+                    {tabs.map(([key, title]) => <Tab key={key} eventKey={key} title={<TabTitleText>{title}</TabTitleText>} />)}
+                </Tabs>
+            </CardBody>
+            <CardBody>
+                {/* All three stay mounted, so an update keeps running on another tab. */}
+                <div hidden={tab !== "services"}><Services status={status} /></div>
+                <div hidden={tab !== "updates"}><Updates status={status} admin={admin} refresh={refresh} /></div>
+                <div hidden={tab !== "upkeep"}><Upkeep admin={admin} /></div>
+            </CardBody>
         </Card>
     );
 }
@@ -487,16 +610,14 @@ export const Application = () => {
             : <EmptyState titleText={_("Loading")} headingLevel="h2" icon={Spinner} />;
     } else {
         body = (
-            <Grid hasGutter>
+            <Stack hasGutter>
                 {!admin &&
-                    <GridItem span={12}>
+                    <StackItem>
                         <Alert variant="info" isInline title={_("Turn on administrative access to update, restart or change the password.")} />
-                    </GridItem>}
-                <GridItem lg={4}><Overview status={status} admin={admin} refresh={refresh} /></GridItem>
-                <GridItem lg={4}><Updates status={status} admin={admin} refresh={refresh} /></GridItem>
-                <GridItem lg={4}><Upkeep admin={admin} /></GridItem>
-                <GridItem span={12}><Logs /></GridItem>
-            </Grid>
+                    </StackItem>}
+                <StackItem><Main status={status} admin={admin} refresh={refresh} /></StackItem>
+                <StackItem><Logs /></StackItem>
+            </Stack>
         );
     }
 
