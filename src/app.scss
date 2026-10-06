@@ -27,7 +27,11 @@ body,
   }
 
   // 保留与标准 Cockpit 一致的左侧黑色分隔带（page inset）
-  --pf-v6-c-page__main-container--MarginInlineStart: var(--pf-v6-c-page--inset);
+  // Only beside Cockpit's sidebar: on a phone the sidebar is a bar at the
+  // bottom, and the gap was left as a grey strip down one side.
+  @media screen and (width >= 48rem) {
+    --pf-v6-c-page__main-container--MarginInlineStart: var(--pf-v6-c-page--inset);
+  }
 }
 // ============================================
 // 3. PageSection 间距配置
