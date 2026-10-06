@@ -4,11 +4,30 @@ A [Cockpit](https://cockpit-project.org/) module for managing the EzySpeech Tran
 
 ## Overview
 
-The EzySpeech Cockpit module integrates with the Cockpit web console to provide:
-- Service management and monitoring
-- Configuration interface
-- Real-time status updates
-- Easy deployment and updates
+A page in Cockpit for running EzySpeech on the server:
+
+- whether the listener page and the operator's console are up, how many are listening, and links to both
+- start, stop and restart
+- checking GitHub for a new release, updating to it with a progress bar, and rolling back
+- setting a new admin password (shown once; only its hash is kept)
+- backing up settings and transcripts to /var/backups
+- the log, filtered or followed live
+
+It works for a native install and a Docker one alike, because it does none of
+this itself: everything goes through the `ezyspeech` command that EzySpeech's
+installer puts on the server, the same one used from a terminal.
+
+## Installing
+
+EzySpeech's installer offers to add this module when Cockpit is on the
+machine, and every EzySpeech release carries a built copy of it
+(`ezyspeech-cockpit-<version>.tar.gz`), so most people never build it:
+
+```bash
+curl -fsSL https://github.com/gahingwoo/ezy_speech_translate/releases/latest/download/install.sh | sudo bash
+```
+
+The rest of this file is for working on the module itself.
 
 ## Prerequisites
 

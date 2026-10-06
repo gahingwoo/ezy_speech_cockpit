@@ -118,3 +118,20 @@ code {
   padding: 0.125rem 0.25rem;
   border-radius: 2px;
 }
+/* The log: a scrolling box of monospaced lines, as Cockpit's own logs page shows them. */
+.ezy-log {
+    max-block-size: 28rem;
+    overflow: auto;
+    margin-block-start: var(--pf-t--global--spacer--sm);
+    padding: var(--pf-t--global--spacer--sm) var(--pf-t--global--spacer--md);
+    border-radius: var(--pf-t--global--border--radius--small);
+    background: var(--pf-t--global--background--color--secondary--default);
+}
+
+.ezy-log pre {
+    margin: 0;
+    font-family: var(--pf-t--global--font--family--mono);
+    font-size: var(--pf-t--global--font--size--body--sm);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
