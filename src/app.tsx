@@ -37,6 +37,9 @@ import cockpit from "cockpit";
 
 const _ = cockpit.gettext;
 const CMD = "ezyspeech";
+// Administrative access runs commands with sudo's PATH, which on Red Hat-like
+// systems leaves out /usr/local/bin, where the installer puts the command.
+const ENV = ["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"];
 const POLL_MS = 10000;
 
 /* ── the command ─────────────────────────────────────────────────────────── */
@@ -58,7 +61,7 @@ type Check = { installed: string; latest: string; update_available: boolean; not
 /** Run `ezyspeech args...` (as root where it may) and parse its JSON. */
 function ezyJson<T>(args: string[]): Promise<T> {
     return new Promise((resolve, reject) => {
-        cockpit.spawn([CMD, ...args], { superuser: "try", err: "message" })
+        cockpit.spawn([CMD, ...args], { environ: ENV, superuser: "try", err: "message" })
                 .then((out: string) => {
                     try { resolve(JSON.parse(out)) } catch (e) { reject(new Error(out || String(e))) }
                 })
@@ -69,7 +72,7 @@ function ezyJson<T>(args: string[]): Promise<T> {
 /** Run `ezyspeech args...` as root; resolves with what it printed. */
 function ezy(args: string[]): Promise<string> {
     return new Promise((resolve, reject) => {
-        cockpit.spawn([CMD, ...args], { superuser: "require", err: "out" })
+        cockpit.spawn([CMD, ...args], { environ: ENV, superuser: "require", err: "out" })
                 .then((out: string) => resolve(out))
                 .catch((e: { message?: string }, out?: string) => reject(new Error(out || e.message || String(e))));
     });
@@ -229,7 +232,7 @@ function Updates({ status, admin, refresh }: { status: Status; admin: boolean; r
         setResult(null);
         setLines([]);
         setProgress({ pct: 0, text: _("Starting") });
-        const proc = cockpit.spawn([CMD, ...args], { superuser: "require", err: "out" });
+        const proc = cockpit.spawn([CMD, ...args], { environ: ENV, superuser: "require", err: "out" });
         let buffer = "";
         let failed = "";
         proc.stream((chunk: string) => {
@@ -393,7 +396,7 @@ function Logs() {
     useEffect(() => {
         setLines([]);
         setError(null);
-        const p = cockpit.spawn([CMD, "logs", "-n", "300", ...(follow ? ["-f"] : [])], { superuser: "try", err: "out" });
+        const p = cockpit.spawn([CMD, "logs", "-n", "300", ...(follow ? ["-f"] : [])], { environ: ENV, superuser: "try", err: "out" });
         let buffer = "";
         p.stream((chunk: string) => {
             buffer += chunk;
