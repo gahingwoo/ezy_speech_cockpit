@@ -19,8 +19,8 @@
 
     <launchable type="cockpit-manifest">ezyspeech</launchable>
 
-    <url type="homepage">https://github.com/gahingwoo/ezy_speech_cokcpit</url>
-    <url type="bugtracker">https://github.com/gahingwoo/ezy_speech_cokcpit/issues</url>
+    <url type="homepage">https://github.com/gahingwoo/ezy_speech_cockpit</url>
+    <url type="bugtracker">https://github.com/gahingwoo/ezy_speech_cockpit/issues</url>
 
     <update_contact>huhuvmb88@outlook.com</update_contact>
 

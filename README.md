@@ -61,8 +61,8 @@ sudo zypper in gettext-runtime nodejs npm make
 Clone the repository and build the module:
 
 ```bash
-git clone https://github.com/gahingwoo/ezy_speech_cokcpit.git
-cd ezy_speech_cokcpit
+git clone https://github.com/gahingwoo/ezy_speech_cockpit.git
+cd ezy_speech_cockpit
 npm install
 make
 ```

@@ -52,6 +52,7 @@ type Status = {
     running: boolean;
     health: { listener: boolean; console: boolean; version: string | null;
               port: number; admin_port: number; listeners: number | null };
+    addresses?: { listener: string | null; console: string | null; https: boolean; console_https: boolean };
     services?: Record<string, string>;
     containers?: Record<string, string>;
 };
@@ -117,11 +118,26 @@ function UpLabel({ up, what }: { up: boolean; what: string }) {
     return <Label color={up ? "green" : "red"}>{what}: {up ? _("running") : _("not answering")}</Label>;
 }
 
+/* Where a server can be opened. Its public address when one is configured;
+ * otherwise this machine's port, linked only when Cockpit itself was opened
+ * by an address that reaches the machine (an IP or a local name). Through a
+ * tunnel or proxy, "cockpit.example.org:1915" would lead nowhere. */
+function Address({ url, port, https }: { url: string | null | undefined; port: number; https: boolean }) {
+    if (url)
+        return <a href={url} target="_blank" rel="noopener noreferrer">{url.replace(/^https?:\/\//, "")} <ExternalLinkAltIcon /></a>;
+    const host = window.location.hostname;
+    const direct = /^[\d.]+$|:|^localhost$|\.local$|^[^.]+$/.test(host);
+    if (!direct)
+        return <>{cockpit.format(_("Port $0 on this machine"), port)}</>;
+    const target = `${https ? "https" : "http"}://${host.includes(":") ? `[${host}]` : host}:${port}`;
+    return <a href={target} target="_blank" rel="noopener noreferrer">{host}:{port} <ExternalLinkAltIcon /></a>;
+}
+
 function Overview({ status, admin, refresh }: { status: Status; admin: boolean; refresh: () => void }) {
     const [busy, setBusy] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const host = window.location.hostname;
     const h = status.health;
+    const a = status.addresses;
 
     const act = (verb: string) => {
         setBusy(verb);
@@ -155,17 +171,13 @@ function Overview({ status, admin, refresh }: { status: Status; admin: boolean; 
                             <DescriptionListGroup>
                                 <DescriptionListTerm>{_("Listener page")}</DescriptionListTerm>
                                 <DescriptionListDescription>
-                                    <a href={`http://${host}:${h.port}`} target="_blank" rel="noopener noreferrer">
-                                        {host}:{h.port} <ExternalLinkAltIcon />
-                                    </a>
+                                    <Address url={a?.listener} port={h.port} https={!!a?.https} />
                                 </DescriptionListDescription>
                             </DescriptionListGroup>
                             <DescriptionListGroup>
                                 <DescriptionListTerm>{_("Operator's console")}</DescriptionListTerm>
                                 <DescriptionListDescription>
-                                    <a href={`http://${host}:${h.admin_port}`} target="_blank" rel="noopener noreferrer">
-                                        {host}:{h.admin_port} <ExternalLinkAltIcon />
-                                    </a>
+                                    <Address url={a?.console} port={h.admin_port} https={!!a?.console_https} />
                                 </DescriptionListDescription>
                             </DescriptionListGroup>
                             <DescriptionListGroup>
@@ -261,7 +273,10 @@ function Updates({ status, admin, refresh }: { status: Status; admin: boolean; r
                     {checking && <StackItem><Spinner size="md" /> {_("Checking GitHub for the latest release...")}</StackItem>}
                     {checkError && <StackItem><Alert variant="warning" isInline title={_("Could not check for updates")}>{checkError}</Alert></StackItem>}
                     {check && !check.update_available &&
-                        <StackItem><Content component="p">{cockpit.format(_("Up to date: $0 is the latest release."), check.installed)}</Content></StackItem>}
+                        <StackItem>
+                            <Content component="p">{cockpit.format(_("Up to date: $0 is the latest release."), check.installed)}</Content>
+                            {check.url && <a href={check.url} target="_blank" rel="noopener noreferrer">{_("What changed in it")} <ExternalLinkAltIcon /></a>}
+                        </StackItem>}
                     {check && check.update_available &&
                         <StackItem>
                             <Alert variant="info" isInline title={cockpit.format(_("EzySpeech $0 is available (this is $1)"), check.latest, check.installed)}>
@@ -283,12 +298,13 @@ function Updates({ status, admin, refresh }: { status: Status; admin: boolean; r
             </CardBody>
             <CardFooter>
                 <Flex>
-                    <FlexItem>
-                        <Button variant="primary" isDisabled={!admin || running || !check?.update_available}
-                                isLoading={running} onClick={() => run(["update", "--yes", "--progress"], _("Updated."))}>
-                            {check?.update_available ? cockpit.format(_("Update to $0"), check.latest) : _("Update")}
-                        </Button>
-                    </FlexItem>
+                    {(check?.update_available || running) &&
+                        <FlexItem>
+                            <Button variant="primary" isDisabled={!admin || running}
+                                    isLoading={running} onClick={() => run(["update", "--yes", "--progress"], _("Updated."))}>
+                                {check ? cockpit.format(_("Update to $0"), check.latest) : _("Update")}
+                            </Button>
+                        </FlexItem>}
                     <FlexItem>
                         <Button variant="secondary" isDisabled={running || checking} onClick={doCheck}>{_("Check again")}</Button>
                     </FlexItem>
@@ -390,6 +406,7 @@ function Logs() {
     const [lines, setLines] = useState<string[]>([]);
     const [follow, setFollow] = useState(false);
     const [filter, setFilter] = useState("");
+    const [requests, setRequests] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const box = useRef<HTMLDivElement | null>(null);
 
@@ -414,7 +431,10 @@ function Logs() {
         if (follow && box.current) box.current.scrollTop = box.current.scrollHeight;
     }, [lines, follow]);
 
-    const shown = filter ? lines.filter(l => l.toLowerCase().includes(filter.toLowerCase())) : lines;
+    // Every page view and poll is a line of the access log; they bury the rest.
+    const request = /"(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS) \S+ HTTP\/[\d.]+" \d{3}|\(\d+\) accepted \(|wsgi starting up/;
+    const shown = lines.filter(l => (requests || !request.test(l)) &&
+                                    (!filter || l.toLowerCase().includes(filter.toLowerCase())));
 
     return (
         <Card>
@@ -425,6 +445,9 @@ function Logs() {
                         <ToolbarItem>
                             <SearchInput placeholder={_("Filter")} value={filter}
                                          onChange={(_e, v) => setFilter(v)} onClear={() => setFilter("")} />
+                        </ToolbarItem>
+                        <ToolbarItem>
+                            <Switch id="ezy-requests" label={_("Web requests")} isChecked={requests} onChange={(_e, v) => setRequests(v)} />
                         </ToolbarItem>
                         <ToolbarItem>
                             <Switch id="ezy-follow" label={_("Follow")} isChecked={follow} onChange={(_e, v) => setFollow(v)} />
@@ -478,7 +501,7 @@ export const Application = () => {
     }
 
     return (
-        <Page isContentFilled>
+        <Page className="ct-page-fill" isContentFilled>
             <PageSection>{body}</PageSection>
         </Page>
     );
