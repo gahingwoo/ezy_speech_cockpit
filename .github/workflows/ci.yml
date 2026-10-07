@@ -37,6 +37,10 @@ jobs:
           echo "::add-mask::$TEST_PASSWORD"
           echo "TEST_PASSWORD=$TEST_PASSWORD" >> "$GITHUB_ENV"
           sudo TEST_PASSWORD="$TEST_PASSWORD" test/prepare-host.sh
+          # The runner image points XDG_CONFIG_HOME at the runner's own home in
+          # /etc/environment, which every login reads, so Cockpit's bridge for
+          # the test user went looking in /home/runner/.config and died.
+          sudo sed -i '/^XDG_CONFIG_HOME=/d' /etc/environment
       - name: Browser
         run: npx playwright install --with-deps chromium
       - name: Browser tests
