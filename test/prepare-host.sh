@@ -23,10 +23,15 @@ if ! command -v cockpit-bridge >/dev/null 2>&1; then
     fi
 fi
 
-id "$TEST_USER" >/dev/null 2>&1 || useradd -m -s /bin/bash "$TEST_USER"
-echo "$TEST_USER:$TEST_PASSWORD" | chpasswd
-echo "$TEST_USER ALL=(ALL) NOPASSWD: ALL" > "/etc/sudoers.d/90-$TEST_USER"
-chmod 440 "/etc/sudoers.d/90-$TEST_USER"
+# Two users: as the second, the stand-in command pretends to be a Podman install.
+for user in "$TEST_USER" ezypodman; do
+    id "$user" >/dev/null 2>&1 || useradd -m -s /bin/bash "$user"
+    echo "$user:$TEST_PASSWORD" | chpasswd
+    echo "$user ALL=(ALL) NOPASSWD: ALL" > "/etc/sudoers.d/90-$user"
+    chmod 440 "/etc/sudoers.d/90-$user"
+done
+mkdir -p /etc/fake-ezyspeech-mode.d
+echo podman > /etc/fake-ezyspeech-mode.d/ezypodman
 
 # Both places the installer links the real command, so the module finds this
 # one wherever it looks.

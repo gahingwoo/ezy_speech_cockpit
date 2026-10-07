@@ -3,6 +3,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ezyspeech\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-07 15:57+1300\n"
 "PO-Revision-Date: 2026-10-07\n"
 "Last-Translator: gahingwoo\n"
 "Language-Team: Chinese (Simplified)\n"
@@ -13,7 +15,9 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: src/components/Updates.tsx:140
-msgid "$0 is set aside and $1 started in its place. Both servers restart, so listeners lose the stream for a few seconds."
+msgid ""
+"$0 is set aside and $1 started in its place. Both servers restart, so "
+"listeners lose the stream for a few seconds."
 msgstr "$0 会被搁置，改为启动 $1。两个服务都会重启，听众会有几秒钟收不到内容。"
 
 #: src/components/Usage.tsx:53
@@ -105,7 +109,9 @@ msgid "Done"
 msgstr "完成"
 
 #: src/components/Services.tsx:82
-msgid "Everyone listening is cut off, and the console cannot record, until it is started again."
+msgid ""
+"Everyone listening is cut off, and the console cannot record, until it is "
+"started again."
 msgstr "在重新启动之前，所有听众都会断开，操作台也无法录音。"
 
 #: src/index.html:20 src/components/Main.tsx:29 src/manifest.json:0
@@ -217,6 +223,10 @@ msgstr "操作台，端口 $0"
 msgid "Password and backups"
 msgstr "密码与备份"
 
+#: src/components/Services.tsx:33
+msgid "Podman"
+msgstr "Podman"
+
 #: src/components/Row.tsx:59
 msgid "Port $0 on this machine"
 msgstr "本机端口 $0"
@@ -274,8 +284,13 @@ msgid "Set this password"
 msgstr "使用这个密码"
 
 #: org.cockpit_project.ezyspeech.metainfo.xml:13
-msgid "Shows whether EzySpeech is running and where to open it, installs its updates and rolls them back, sets the admin password, makes backups and reads the log, for an install on the machine or in Docker."
-msgstr "显示 EzySpeech 是否在运行以及访问地址，安装更新或回退，设置管理员密码，备份数据，查看日志。原生安装和 Docker 安装都适用。"
+msgid ""
+"Shows whether EzySpeech is running and where to open it, installs its "
+"updates and rolls them back, sets the admin password, makes backups and "
+"reads the log, for an install on the machine or in Docker."
+msgstr ""
+"显示 EzySpeech 是否在运行以及访问地址，安装更新或回退，设置管理员密码，备份数"
+"据，查看日志。原生安装和 Docker 安装都适用。"
 
 #: src/components/Services.tsx:73
 msgid "Start"
@@ -318,7 +333,9 @@ msgid "The new admin password is set; the servers restarted."
 msgstr "新的管理员密码已设置，服务已重启。"
 
 #: src/components/Upkeep.tsx:103
-msgid "The old one stops working at once, and anyone signed in to the console has to sign in again."
+msgid ""
+"The old one stops working at once, and anyone signed in to the console has "
+"to sign in again."
 msgstr "旧密码会立即失效，已登录操作台的人需要重新登录。"
 
 #: src/components/Updates.tsx:94
@@ -330,8 +347,13 @@ msgid "The settings, the password hash and every transcript, as one file"
 msgstr "设置、密码哈希和全部讲道记录，打包成一个文件"
 
 #: src/components/Updates.tsx:101
-msgid "The update is checked against its published SHA-256, prepared beside the running release, and switched in with a restart. If it does not come up healthy, the running release is put back."
-msgstr "更新包会先核对发布的 SHA-256，在当前版本旁边准备好，再通过一次重启切换过去。如果新版本没有正常启动，会自动换回当前版本。"
+msgid ""
+"The update is checked against its published SHA-256, prepared beside the "
+"running release, and switched in with a restart. If it does not come up "
+"healthy, the running release is put back."
+msgstr ""
+"更新包会先核对发布的 SHA-256，在当前版本旁边准备好，再通过一次重启切换过去。"
+"如果新版本没有正常启动，会自动换回当前版本。"
 
 #: src/components/Upkeep.tsx:131
 msgid "They do not match"
@@ -346,7 +368,8 @@ msgid "Transcripts"
 msgstr "讲道记录"
 
 #: src/app.tsx:50
-msgid "Turn on administrative access to update, restart or change the password."
+msgid ""
+"Turn on administrative access to update, restart or change the password."
 msgstr "打开管理员模式后才能更新、重启或修改密码。"
 
 #: src/components/Updates.tsx:71

@@ -26,7 +26,7 @@ export type Usage = {
 };
 
 export type Status = {
-    mode: "native" | "docker";
+    mode: "native" | "docker" | "podman";
     home: string;
     version: string | null;
     releases: string[];

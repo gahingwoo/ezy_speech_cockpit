@@ -13,6 +13,7 @@ can check what the page asked for.
 """
 
 import json
+import os
 import sys
 import time
 
@@ -24,9 +25,32 @@ def log(*args):
         f.write(' '.join(args) + '\n')
 
 
+def mode():
+    # The kind of install to pretend to be, per signed-in user (sudo says who),
+    # so a test can see the page for a container install by signing in as
+    # another user; test/prepare-host.sh makes "ezypodman" one.
+    user = os.environ.get('SUDO_USER') or os.environ.get('USER') or ''
+    try:
+        return open(f'/etc/fake-ezyspeech-mode.d/{user}').read().strip() or 'native'
+    except OSError:
+        return 'native'
+
+
 def status():
     # CPU time grows with the clock, so two readings give a steady load.
     now = time.monotonic_ns()
+    if mode() != 'native':
+        container = {'processes': [{'name': 'container', 'memory': 174 * 1024 * 1024, 'cpu_percent': 1.5}],
+                     'memory_total': 4 * 1024 ** 3, 'data_bytes': 1_320_000,
+                     'disk_free': 27 * 1000 ** 3, 'at_ns': now}
+        found = {**native_status(now), 'mode': mode(), 'containers': {'ezyspeech': 'running'},
+                 'usage': container}
+        del found['services'], found['state']
+        return found
+    return native_status(now)
+
+
+def native_status(now):
     return {
         'mode': 'native', 'home': '/opt/ezyspeech', 'version': INSTALLED,
         'releases': [PREVIOUS, INSTALLED], 'state': '/var/lib/ezyspeech',

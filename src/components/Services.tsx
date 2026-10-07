@@ -30,7 +30,7 @@ export function Services({ status }: { status: Status }) {
                  detail={cockpit.format(_("Operator's console, port $0"), h.admin_port)}>
                 <Address url={a?.console} port={h.admin_port} https={!!a?.console_https} />
             </Row>
-            <Row icon={plain(<ServerIcon />)} state={status.mode === "docker" ? _("Docker") : _("Native")}
+            <Row icon={plain(<ServerIcon />)} state={{ docker: _("Docker"), podman: _("Podman"), native: _("Native") }[status.mode] ?? status.mode}
                  detail={cockpit.format(_("Releases kept: $0"), status.releases.join(", "))}>
                 {status.home}
             </Row>

@@ -10,7 +10,7 @@ const PASSWORD = process.env.TEST_PASSWORD;
 
 // Signs in with administrative access, as the page needs it for every action,
 // and opens the module. Cockpit runs it in an iframe of its own.
-async function open(page, { lang } = {}) {
+async function open(page, { lang, user = USER } = {}) {
     if (!PASSWORD)
         throw new Error('Set TEST_PASSWORD to the test user\'s password');
     if (lang) {
@@ -21,7 +21,7 @@ async function open(page, { lang } = {}) {
     const status = await page.evaluate(([user, password]) =>
         fetch('/cockpit/login', {
             headers: { Authorization: 'Basic ' + btoa(user + ':' + password), 'X-Superuser': 'any' },
-        }).then(r => r.status), [USER, PASSWORD]);
+        }).then(r => r.status), [user, PASSWORD]);
     expect(status).toBe(200);
     await page.goto('/ezyspeech');
     return page.frameLocator('iframe[name$="/ezyspeech"]');
@@ -132,4 +132,13 @@ test('speaks Chinese when Cockpit does', async ({ page }) => {
     const app = await open(page, { lang: 'zh-cn' });
     await expect(app.getByRole('tab', { name: '更新' })).toBeVisible();
     await expect(app.getByText('运行中', { exact: true })).toHaveCount(2);
+});
+
+test('names a Podman install, and shows its one container', async ({ page }) => {
+    // As this user, the stand-in command reports a Podman install.
+    const app = await open(page, { user: 'ezypodman' });
+    await expect(app.getByText('Podman', { exact: true })).toBeVisible();
+    const usage = app.locator('.pf-v6-c-card', { has: app.getByRole('heading', { name: 'Usage' }) });
+    await expect(usage.getByText('Container')).toBeVisible();
+    await expect(usage.getByText('CPU: 1.5%')).toBeVisible();
 });

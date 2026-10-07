@@ -12,8 +12,8 @@ jobs:
   codecheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - name: Types, lint and styles
@@ -23,8 +23,8 @@ jobs:
     needs: codecheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - name: Build
@@ -52,7 +52,7 @@ jobs:
                -u "ezytester:$TEST_PASSWORD" https://localhost:9090/cockpit/login || true
           sudo journalctl --no-pager --since -2min | grep -v pam_ssh_add | grep -iE 'cockpit|bridge|ezytester|session' | tail -60 || true
           cockpit-bridge --version || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: failure()
         with:
           name: playwright-report
