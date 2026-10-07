@@ -40,6 +40,12 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Browser tests
         run: make check
+      - name: What Cockpit said
+        if: failure()
+        run: |
+          curl -sk -o /dev/null -w 'login as the test user: %{http_code}\n' \
+               -u "ezytester:$TEST_PASSWORD" https://localhost:9090/cockpit/login || true
+          sudo journalctl --no-pager -n 80 -u 'cockpit*' -t cockpit-session -t cockpit-ws || true
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
