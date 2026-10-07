@@ -3,15 +3,18 @@
     <id>org.gahingwoo.ezyspeech</id>
 
     <metadata_license>CC0-1.0</metadata_license>
+    <project_license>AGPL-3.0-or-later</project_license>
 
-    <name>EzySpeech Control Panel</name>
+    <name>EzySpeech</name>
 
-    <summary>Web-based control panel for EzySpeech Translate service</summary>
+    <summary>Run EzySpeech, live speech translation, from Cockpit</summary>
 
     <description>
         <p>
-            EzySpeech Control Panel provides a web-based interface integrated
-            into Cockpit for managing the EzySpeech Translate service.
+            Shows whether EzySpeech is running and where to open it, installs
+            its updates and rolls them back, sets the admin password, makes
+            backups and reads the log, for an install on the machine or in
+            Docker.
         </p>
     </description>
 

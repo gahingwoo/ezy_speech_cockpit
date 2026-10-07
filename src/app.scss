@@ -1,147 +1,54 @@
-// SPDX-License-Identifier: LGPL-2.1-or-later
+// SPDX-License-Identifier: AGPL-3.0-or-later
 @use "page.scss";
 
-// ============================================
-// 0. 全局 Red Hat 字体
-// ============================================
+// The page fills the iframe, so its sheet reaches the bottom of the window
+// rather than stopping, cut off, where the content does.
 html,
 body,
 #app {
-  font-family: "Red Hat Text", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif;
   block-size: 100%;
 }
 
-// ============================================
-// 2. 修复 Cockpit iframe 中的布局问题
-// ============================================
-// 问题：PatternFly Page 在宽屏上预留侧边栏空间
-// 解决：强制单列布局，移除左边距
+// PatternFly's Page keeps a column for a sidebar on wide screens; a Cockpit
+// page has none (Cockpit's own navigation is outside the iframe), so it is
+// one column. The gap beside Cockpit's sidebar is kept, as Cockpit's own pages
+// have it, but only where that sidebar is: on a phone it is a bar at the
+// bottom, and the gap was left as a grey strip down one side.
 .ct-page-fill.pf-v6-c-page {
   @media screen and (width >= 75rem) {
-    // 更改网格布局区域，只显示 header + main
     grid-template-areas:
       "header"
       "main";
-    // 单列布局
     grid-template-columns: 1fr;
   }
 
-  // 保留与标准 Cockpit 一致的左侧黑色分隔带（page inset）
-  // Only beside Cockpit's sidebar: on a phone the sidebar is a bar at the
-  // bottom, and the gap was left as a grey strip down one side.
   @media screen and (width >= 48rem) {
     --pf-v6-c-page__main-container--MarginInlineStart: var(--pf-v6-c-page--inset);
   }
 }
-// ============================================
-// 3. PageSection 间距配置
-// ============================================
-.pf-v6-c-page__main-section {
-  // 上下 padding：32px (xl)
-  --pf-v6-c-page__main-section--PaddingBlockStart: var(--pf-t--global--spacer--xl);
-  --pf-v6-c-page__main-section--PaddingBlockEnd: var(--pf-t--global--spacer--xl);
-  
-  // 左右 padding：24px (lg) - Cockpit 标准
-  padding-inline: 24px;
-}
 
-// 移除连续 PageSection 之间的重复 padding
-.pf-v6-c-page__main-section + .pf-v6-c-page__main-section {
-  padding-block-start: 0;
-}
-
-// ============================================
-// 4. 网格组件间距
-// ============================================
-.pf-v6-l-grid {
-  // grid 项目间的间距：24px (lg)
-  --pf-v6-l-grid--all--GridGap: var(--pf-t--global--spacer--lg);
-}
-
-// ============================================
-// 5. Stack 组件间距
-// ============================================
-.pf-v6-l-stack {
-  // Stack 项目间的间距：16px (md)，hasGutter 会使用此值
-  --pf-v6-l-stack--spacer: var(--pf-t--global--spacer--md);
-  
-  &.pf-m-gutter {
-    --pf-v6-l-stack--spacer: var(--pf-t--global--spacer--lg);
-  }
-}
-
-// ============================================
-// 6. Card 内部间距
-// ============================================
-.pf-v6-c-card {
-  // Card 内部间距
-  --pf-v6-c-card__title--PaddingTop: var(--pf-t--global--spacer--lg);
-  --pf-v6-c-card__title--PaddingRight: var(--pf-t--global--spacer--lg);
-  --pf-v6-c-card__title--PaddingBottom: var(--pf-t--global--spacer--lg);
-  --pf-v6-c-card__title--PaddingLeft: var(--pf-t--global--spacer--lg);
-  
-  .pf-v6-c-card__body {
-    --pf-v6-c-card__body--PaddingTop: var(--pf-t--global--spacer--lg);
-    --pf-v6-c-card__body--PaddingRight: var(--pf-t--global--spacer--lg);
-    --pf-v6-c-card__body--PaddingBottom: var(--pf-t--global--spacer--lg);
-    --pf-v6-c-card__body--PaddingLeft: var(--pf-t--global--spacer--lg);
-  }
-}
-
-// ============================================
-// 7. 文本内容（Content）间距
-// ============================================
-.pf-v6-c-content {
-  // 段落底部间距
-  p {
-    margin-bottom: var(--pf-t--global--spacer--md);
-  }
-  
-  // 标题底部间距
-  h1, h2, h3, h4, h5, h6 {
-    margin-bottom: var(--pf-t--global--spacer--sm);
-  }
-}
-
-// ============================================
-// 8. 页面 H1 标题 
-// ============================================
-.pf-v6-c-content h1 {
-  font-family: "Red Hat Display", -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 28px;
-  font-weight: 600;
-}
-
-// ============================================
-// 9. Code 元素颜色
-// ============================================
-code {
-  font-family: "Red Hat Mono", "Courier New", monospace;
-  background-color: transparent;
-  color: inherit;
-  padding: 0.125rem 0.25rem;
-  border-radius: 2px;
-}
-/* The log: a scrolling box of monospaced lines, as Cockpit's own logs page shows them. */
+// The log: a scrolling box of monospaced lines, as Cockpit's own logs page
+// shows them.
 .ezy-log {
-    max-block-size: 28rem;
-    overflow: auto;
-    margin-block-start: var(--pf-t--global--spacer--sm);
-    padding: var(--pf-t--global--spacer--sm) var(--pf-t--global--spacer--md);
-    border-radius: var(--pf-t--global--border--radius--small);
-    background: var(--pf-t--global--background--color--secondary--default);
+  max-block-size: 28rem;
+  overflow: auto;
+  margin-block-start: var(--pf-t--global--spacer--sm);
+  padding: var(--pf-t--global--spacer--sm) var(--pf-t--global--spacer--md);
+  border-radius: var(--pf-t--global--border--radius--small);
+  background: var(--pf-t--global--background--color--secondary--default);
 }
 
 .ezy-log pre {
-    margin: 0;
-    font-family: var(--pf-t--global--font--family--mono);
-    font-size: var(--pf-t--global--font--size--body--sm);
-    white-space: pre-wrap;
-    word-break: break-word;
+  margin: 0;
+  font-family: var(--pf-t--global--font--family--mono);
+  font-size: var(--pf-t--global--font--size--body--sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
-/* The second line of a status row: smaller and quieter, as in PatternFly's status card. */
+// The second line of a status row: smaller and quieter, as in PatternFly's
+// status card.
 .ezy-detail {
-    color: var(--pf-t--global--text--color--subtle);
-    font-size: var(--pf-t--global--font--size--body--sm);
+  color: var(--pf-t--global--text--color--subtle);
+  font-size: var(--pf-t--global--font--size--body--sm);
 }

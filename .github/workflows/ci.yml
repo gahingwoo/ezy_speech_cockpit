@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  codecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Types, lint and styles
+        run: make codecheck
+
+  browser:
+    needs: codecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build
+        run: make NODE_ENV=production
+      # The runner is thrown away afterwards, so the test user's password is
+      # made up here and never leaves it.
+      - name: Cockpit, a test user, the stand-in ezyspeech and the module
+        run: |
+          echo "TEST_PASSWORD=$(openssl rand -hex 16)" >> "$GITHUB_ENV"
+          . "$GITHUB_ENV"
+          sudo TEST_PASSWORD="$TEST_PASSWORD" test/prepare-host.sh
+      - name: Browser
+        run: npx playwright install --with-deps chromium
+      - name: Browser tests
+        run: make check
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14

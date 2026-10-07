@@ -1,0 +1,386 @@
+# Chinese (Simplified) translation of the EzySpeech Cockpit module.
+# SPDX-License-Identifier: AGPL-3.0-or-later
+msgid ""
+msgstr ""
+"Project-Id-Version: ezyspeech\n"
+"PO-Revision-Date: 2026-10-07\n"
+"Last-Translator: gahingwoo\n"
+"Language-Team: Chinese (Simplified)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: src/components/Updates.tsx:140
+msgid "$0 is set aside and $1 started in its place. Both servers restart, so listeners lose the stream for a few seconds."
+msgstr "$0 会被搁置，改为启动 $1。两个服务都会重启，听众会有几秒钟收不到内容。"
+
+#: src/components/Usage.tsx:53
+msgid "$0% of memory"
+msgstr "占内存 $0%"
+
+#: src/components/Upkeep.tsx:71
+msgid "A new one replaces it, and both servers restart"
+msgstr "设置新密码会替换旧密码，并重启两个服务"
+
+#: src/components/Upkeep.tsx:125
+msgid "Again"
+msgstr "再输一次"
+
+#: src/components/Updates.tsx:69
+msgid "Asking GitHub for the latest release"
+msgstr "正在向 GitHub 查询最新版本"
+
+#: src/components/Upkeep.tsx:120
+msgid "At least 8 characters"
+msgstr "至少 8 个字符"
+
+#: src/components/Updates.tsx:74
+msgid "Available"
+msgstr "有更新"
+
+#: src/components/Updates.tsx:137
+msgid "Back on $0."
+msgstr "已回到 $0。"
+
+#: src/components/Upkeep.tsx:93
+msgid "Back up now"
+msgstr "立即备份"
+
+#: src/components/Upkeep.tsx:74
+msgid "Backups"
+msgstr "备份"
+
+#: src/components/Usage.tsx:55
+msgid "CPU: $0%"
+msgstr "CPU：$0%"
+
+#: src/components/Usage.tsx:55
+msgid "CPU: measuring"
+msgstr "CPU：测量中"
+
+#: src/components/Upkeep.tsx:142 src/components/Confirm.tsx:21
+msgid "Cancel"
+msgstr "取消"
+
+#: src/components/Updates.tsx:124
+msgid "Check again"
+msgstr "重新检查"
+
+#: src/components/Updates.tsx:69
+msgid "Checking"
+msgstr "检查中"
+
+#: src/components/Usage.tsx:36
+msgid "Container"
+msgstr "容器"
+
+#: src/components/Upkeep.tsx:149
+msgid "Copied"
+msgstr "已复制"
+
+#: src/components/Upkeep.tsx:149
+msgid "Copy"
+msgstr "复制"
+
+#: src/components/Updates.tsx:71
+msgid "Could not check for updates"
+msgstr "无法检查更新"
+
+#: src/app.tsx:43
+msgid "Could not read EzySpeech's status"
+msgstr "无法读取 EzySpeech 的状态"
+
+#: src/components/Logs.tsx:60
+msgid "Could not read the log"
+msgstr "无法读取日志"
+
+#: src/components/Services.tsx:33
+msgid "Docker"
+msgstr "Docker"
+
+#: src/components/Upkeep.tsx:153
+msgid "Done"
+msgstr "完成"
+
+#: src/components/Services.tsx:82
+msgid "Everyone listening is cut off, and the console cannot record, until it is started again."
+msgstr "在重新启动之前，所有听众都会断开，操作台也无法录音。"
+
+#: src/index.html:20 src/components/Main.tsx:29 src/manifest.json:0
+#: org.cockpit_project.ezyspeech.metainfo.xml:8
+msgid "EzySpeech"
+msgstr "EzySpeech"
+
+#: src/app.tsx:32
+msgid "EzySpeech is not installed on this machine"
+msgstr "这台机器上没有安装 EzySpeech"
+
+#: src/components/Logs.tsx:49
+msgid "Filter"
+msgstr "筛选"
+
+#: src/components/Logs.tsx:56
+msgid "Follow"
+msgstr "实时跟随"
+
+#: src/components/Usage.tsx:67
+msgid "Free on disk"
+msgstr "磁盘剩余"
+
+#: src/components/Updates.tsx:93
+msgid "Going back to it is a restart"
+msgstr "回退到它只需重启一次"
+
+#: src/components/Upkeep.tsx:70
+msgid "Hashed"
+msgstr "仅存哈希"
+
+#: src/components/Upkeep.tsx:108
+msgid "I will type it"
+msgstr "我自己输入"
+
+#: src/app.tsx:34
+msgid "Install it from a terminal; this page manages it afterwards."
+msgstr "请在终端里安装，之后就可以在这个页面管理。"
+
+#: src/components/Updates.tsx:59
+msgid "It did not complete. The log below says why."
+msgstr "没有完成，原因见下面的日志。"
+
+#: src/components/Updates.tsx:92
+msgid "Kept"
+msgstr "已保留"
+
+#: src/components/Usage.tsx:36
+msgid "Listener page"
+msgstr "听众页面"
+
+#: src/components/Services.tsx:21
+msgid "Listener page, port $0"
+msgstr "听众页面，端口 $0"
+
+#: src/components/Services.tsx:20
+msgid "Listener page, port $0, $1 listening now"
+msgstr "听众页面，端口 $0，当前 $1 人在听"
+
+#: src/app.tsx:44
+msgid "Loading"
+msgstr "加载中"
+
+#: src/components/Logs.tsx:44
+msgid "Log"
+msgstr "日志"
+
+#: src/components/Upkeep.tsx:140
+msgid "Make a new password"
+msgstr "生成新密码"
+
+#: src/components/Upkeep.tsx:106
+msgid "Make a strong one for me"
+msgstr "帮我生成一个强密码"
+
+#: src/components/Usage.tsx:51
+msgid "Memory used by $0"
+msgstr "$0 使用的内存"
+
+#: src/components/Services.tsx:33
+msgid "Native"
+msgstr "原生安装"
+
+#: src/components/Upkeep.tsx:114
+msgid "New password"
+msgstr "新密码"
+
+#: src/components/Logs.tsx:62
+msgid "No lines match."
+msgstr "没有匹配的行。"
+
+#: src/components/Services.tsx:25 src/components/Services.tsx:29
+msgid "Not answering"
+msgstr "无响应"
+
+#: src/components/Logs.tsx:62
+msgid "Nothing logged yet."
+msgstr "还没有日志。"
+
+#: src/components/Usage.tsx:36
+msgid "Operator's console"
+msgstr "操作台"
+
+#: src/components/Services.tsx:30
+msgid "Operator's console, port $0"
+msgstr "操作台，端口 $0"
+
+#: src/components/Main.tsx:17 src/components/Upkeep.tsx:69
+msgid "Password and backups"
+msgstr "密码与备份"
+
+#: src/components/Row.tsx:59
+msgid "Port $0 on this machine"
+msgstr "本机端口 $0"
+
+#: src/components/Updates.tsx:65
+msgid "Release notes"
+msgstr "更新说明"
+
+#: src/components/Services.tsx:34
+msgid "Releases kept: $0"
+msgstr "保留的版本：$0"
+
+#: src/components/Services.tsx:64
+msgid "Restart"
+msgstr "重启"
+
+#: src/components/Updates.tsx:136
+msgid "Roll back"
+msgstr "回退"
+
+#: src/components/Updates.tsx:129
+msgid "Roll back to $0"
+msgstr "回退到 $0"
+
+#: src/components/Updates.tsx:135
+msgid "Roll back to $0?"
+msgstr "回退到 $0？"
+
+#: org.cockpit_project.ezyspeech.metainfo.xml:10
+msgid "Run EzySpeech, live speech translation, from Cockpit"
+msgstr "在 Cockpit 里管理 EzySpeech 实时语音翻译"
+
+#: src/components/Services.tsx:25 src/components/Services.tsx:29
+msgid "Running"
+msgstr "运行中"
+
+#: src/components/Upkeep.tsx:61
+msgid "Saved $0"
+msgstr "已保存到 $0"
+
+#: src/components/Main.tsx:17 src/components/Services.tsx:24
+msgid "Services"
+msgstr "服务"
+
+#: src/components/Upkeep.tsx:89
+msgid "Set a new admin password"
+msgstr "设置新的管理员密码"
+
+#: src/components/Upkeep.tsx:99
+msgid "Set a new admin password?"
+msgstr "设置新的管理员密码？"
+
+#: src/components/Upkeep.tsx:140
+msgid "Set this password"
+msgstr "使用这个密码"
+
+#: org.cockpit_project.ezyspeech.metainfo.xml:13
+msgid "Shows whether EzySpeech is running and where to open it, installs its updates and rolls them back, sets the admin password, makes backups and reads the log, for an install on the machine or in Docker."
+msgstr "显示 EzySpeech 是否在运行以及访问地址，安装更新或回退，设置管理员密码，备份数据，查看日志。原生安装和 Docker 安装都适用。"
+
+#: src/components/Services.tsx:73
+msgid "Start"
+msgstr "启动"
+
+#: src/components/Updates.tsx:50
+msgid "Starting"
+msgstr "正在开始"
+
+#: src/components/Services.tsx:68 src/components/Services.tsx:79
+msgid "Stop"
+msgstr "停止"
+
+#: src/components/Services.tsx:79
+msgid "Stop EzySpeech?"
+msgstr "停止 EzySpeech？"
+
+#: src/components/Usage.tsx:61
+msgid "Storage"
+msgstr "存储"
+
+#: src/components/Services.tsx:77
+msgid "That did not work"
+msgstr "操作失败"
+
+#: src/components/Upkeep.tsx:72
+msgid "The admin password is kept only as a hash, so it cannot be shown"
+msgstr "管理员密码只保存哈希值，所以无法显示"
+
+#: src/components/Updates.tsx:81
+msgid "The latest release on GitHub"
+msgstr "这是 GitHub 上的最新版本"
+
+#: src/components/Upkeep.tsx:146
+msgid "The new admin password"
+msgstr "新的管理员密码"
+
+#: src/components/Upkeep.tsx:45
+msgid "The new admin password is set; the servers restarted."
+msgstr "新的管理员密码已设置，服务已重启。"
+
+#: src/components/Upkeep.tsx:103
+msgid "The old one stops working at once, and anyone signed in to the console has to sign in again."
+msgstr "旧密码会立即失效，已登录操作台的人需要重新登录。"
+
+#: src/components/Updates.tsx:94
+msgid "The release before: $0"
+msgstr "上一个版本：$0"
+
+#: src/components/Upkeep.tsx:75
+msgid "The settings, the password hash and every transcript, as one file"
+msgstr "设置、密码哈希和全部讲道记录，打包成一个文件"
+
+#: src/components/Updates.tsx:101
+msgid "The update is checked against its published SHA-256, prepared beside the running release, and switched in with a restart. If it does not come up healthy, the running release is put back."
+msgstr "更新包会先核对发布的 SHA-256，在当前版本旁边准备好，再通过一次重启切换过去。如果新版本没有正常启动，会自动换回当前版本。"
+
+#: src/components/Upkeep.tsx:131
+msgid "They do not match"
+msgstr "两次输入不一致"
+
+#: src/components/Updates.tsx:75
+msgid "This machine runs $0"
+msgstr "这台机器当前是 $0"
+
+#: src/components/Usage.tsx:63
+msgid "Transcripts"
+msgstr "讲道记录"
+
+#: src/app.tsx:50
+msgid "Turn on administrative access to update, restart or change the password."
+msgstr "打开管理员模式后才能更新、重启或修改密码。"
+
+#: src/components/Updates.tsx:71
+msgid "Unknown"
+msgstr "未知"
+
+#: src/components/Updates.tsx:81
+msgid "Up to date"
+msgstr "已是最新"
+
+#: src/components/Updates.tsx:120
+msgid "Update"
+msgstr "更新"
+
+#: src/components/Updates.tsx:120
+msgid "Update to $0"
+msgstr "更新到 $0"
+
+#: src/components/Updates.tsx:119
+msgid "Updated."
+msgstr "已更新。"
+
+#: src/components/Main.tsx:17 src/components/Updates.tsx:89
+msgid "Updates"
+msgstr "更新"
+
+#: src/components/Usage.tsx:41
+msgid "Usage"
+msgstr "资源占用"
+
+#: src/components/Logs.tsx:53
+msgid "Web requests"
+msgstr "网页请求"
+
+#: src/components/Upkeep.tsx:150
+msgid "Write it down: it is not shown again."
+msgstr "请记下来：它不会再显示。"

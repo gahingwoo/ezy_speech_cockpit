@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-or-later
+"""A stand-in for the ezyspeech command, for the browser tests.
+
+The module does everything through `ezyspeech ...`, so with this installed in
+its place the page can be tested on any machine with Cockpit, without
+EzySpeech. It answers the way the real command does, with fixed data: version
+4.1.9 installed, 4.2.0 available, one older release kept to roll back to.
+
+Commands that would change something (restart, update, password, ...) succeed
+without doing anything, and are appended to /tmp/fake-ezyspeech.log so a test
+can check what the page asked for.
+"""
+
+import json
+import sys
+import time
+
+INSTALLED, LATEST, PREVIOUS = '4.1.9', '4.2.0', '4.1.8'
+
+
+def log(*args):
+    with open('/tmp/fake-ezyspeech.log', 'a') as f:
+        f.write(' '.join(args) + '\n')
+
+
+def status():
+    # CPU time grows with the clock, so two readings give a steady load.
+    now = time.monotonic_ns()
+    return {
+        'mode': 'native', 'home': '/opt/ezyspeech', 'version': INSTALLED,
+        'releases': [PREVIOUS, INSTALLED], 'state': '/var/lib/ezyspeech',
+        'health': {'listener': True, 'console': True, 'version': INSTALLED,
+                   'port': 1915, 'admin_port': 1916, 'listeners': 3},
+        'addresses': {'listener': 'https://ezyspeech.example.org', 'console': None,
+                      'https': False, 'console_https': False},
+        'services': {'ezyspeech-user.service': 'active', 'ezyspeech-admin.service': 'active'},
+        'running': True,
+        'usage': {
+            'processes': [
+                {'name': 'listener', 'memory': 131 * 1024 * 1024, 'cpu_ns': now // 50},
+                {'name': 'console', 'memory': 49 * 1024 * 1024, 'cpu_ns': now // 1000},
+            ],
+            'memory_total': 4 * 1024 ** 3, 'data_bytes': 1_320_000,
+            'disk_free': 27 * 1000 ** 3, 'at_ns': now,
+        },
+    }
+
+
+LOG = [
+    '2026-10-07T12:41:17+13:00 host systemd[1]: Started ezyspeech-user.service - EzySpeech listener and transcript server.',
+    '2026-10-07T12:41:18+13:00 host python[2468]: [INFO] __main__: Starting EzySpeechTranslate Admin Server...',
+    '2026-10-07T12:41:20+13:00 host python[2467]: 127.0.0.1 - - [07/Oct/2026 12:41:20] "GET /api/health HTTP/1.1" 200 141 0.002',
+    '2026-10-07T12:41:21+13:00 host python[2467]: [INFO] __main__: Translated a line for 3 listeners',
+]
+
+
+def main(argv):
+    cmd = argv[0] if argv else ''
+    if cmd == 'status' and '--json' in argv:
+        print(json.dumps(status()))
+    elif cmd == 'check-update' and '--json' in argv:
+        print(json.dumps({'installed': INSTALLED, 'latest': LATEST, 'update_available': True,
+                          'notes': 'Test release', 'url': 'https://example.org/releases/' + LATEST}))
+    elif cmd == 'logs':
+        print('\n'.join(LOG))
+        if '-f' in argv:
+            sys.stdout.flush()
+            time.sleep(3600)
+    elif cmd == 'version':
+        print(INSTALLED)
+    elif cmd == 'update':
+        log(*argv)
+        for pct, text in ((5, 'Downloading ' + LATEST), (80, 'Switching to ' + LATEST), (100, 'Updated to ' + LATEST)):
+            print(f'PROGRESS {pct} {text}', flush=True)
+            time.sleep(0.3)
+    elif cmd == 'password':
+        if '--stdin' in argv:
+            typed = sys.stdin.readline().rstrip('\n')
+            if len(typed) < 8:
+                print('ezyspeech: At least 8 characters; nothing was changed.', file=sys.stderr)
+                return 1
+            log('password --stdin', str(len(typed)))
+            print(json.dumps({'password': None}))
+        else:
+            log(*argv)
+            print(json.dumps({'password': 'test-made-pass'}))
+    elif cmd in ('start', 'stop', 'restart', 'rollback', 'backup', 'finish-update'):
+        log(*argv)
+    else:
+        print(f'ezyspeech: unknown command {" ".join(argv)}', file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))

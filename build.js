@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: LGPL-2.1-or-later
+// From Cockpit's starter-kit, Copyright (C) Red Hat, Inc.
 
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
