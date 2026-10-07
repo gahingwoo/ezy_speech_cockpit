@@ -30,6 +30,8 @@ export type Status = {
     home: string;
     version: string | null;
     releases: string[];
+    // the release `ezyspeech rollback` would go back to (from 4.1.11)
+    rollback_to?: string | null;
     running: boolean;
     health: { listener: boolean; console: boolean; version: string | null;
               port: number; admin_port: number; listeners: number | null };
@@ -40,6 +42,25 @@ export type Status = {
 };
 
 export type Check = { installed: string; latest: string; update_available: boolean; notes: string; url: string };
+
+function versionKey(v: string): number[] {
+    return (v.match(/\d+/g) ?? []).slice(0, 3).map(Number);
+}
+
+/** The release a rollback goes back to: the newest one older than the one in
+ *  use, as `ezyspeech rollback` chooses it. Newer servers say so in status. */
+export function rollbackTarget(status: Status): string | null {
+    if (status.rollback_to !== undefined)
+        return status.rollback_to;
+    const cur = versionKey(status.version ?? "");
+    const older = status.releases.filter(r => {
+        const k = versionKey(r);
+        for (let i = 0; i < 3; i++)
+            if ((k[i] ?? 0) !== (cur[i] ?? 0)) return (k[i] ?? 0) < (cur[i] ?? 0);
+        return false;
+    });
+    return older[older.length - 1] ?? null;
+}
 
 /** Run `ezyspeech args...` (as root where it may) and parse its JSON. */
 export function ezyJson<T>(args: string[]): Promise<T> {

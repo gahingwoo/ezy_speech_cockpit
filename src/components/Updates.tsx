@@ -14,7 +14,7 @@ import ArrowCircleUpIcon from "@patternfly/react-icons/dist/esm/icons/arrow-circ
 import HistoryIcon from "@patternfly/react-icons/dist/esm/icons/history-icon";
 import cockpit from "cockpit";
 
-import { _, ezyJson, ezyLines, type Check, type Status } from "../ezyspeech.js";
+import { _, ezyJson, ezyLines, rollbackTarget, type Check, type Status } from "../ezyspeech.js";
 import { Confirm } from "./Confirm.jsx";
 import { OutLink, Row, info, ok, plain, warn } from "./Row.jsx";
 
@@ -60,8 +60,7 @@ export function Updates({ status, admin, refresh }: { status: Status; admin: boo
                 .finally(() => { setRunning(false); setProgress(null); refresh(); doCheck() });
     };
 
-    const older = status.releases.filter(r => r !== status.version);
-    const previous = older[older.length - 1];
+    const previous = rollbackTarget(status);
     const notes = check?.url && <OutLink href={check.url}>{_("Release notes")}</OutLink>;
 
     let row;

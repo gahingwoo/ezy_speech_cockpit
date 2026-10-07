@@ -43,9 +43,12 @@ def status():
         container = {'processes': [{'name': 'container', 'memory': 174 * 1024 * 1024, 'cpu_percent': 1.5}],
                      'memory_total': 4 * 1024 ** 3, 'data_bytes': 1_320_000,
                      'disk_free': 27 * 1000 ** 3, 'at_ns': now}
+        # As a container install, also an older server: no rollback_to, and a
+        # newer release kept from an update that was rolled back, which the
+        # page must not offer to "roll back" to.
         found = {**native_status(now), 'mode': mode(), 'containers': {'ezyspeech': 'running'},
-                 'usage': container}
-        del found['services'], found['state']
+                 'usage': container, 'releases': [PREVIOUS, INSTALLED, LATEST]}
+        del found['services'], found['state'], found['rollback_to']
         return found
     return native_status(now)
 
@@ -53,7 +56,7 @@ def status():
 def native_status(now):
     return {
         'mode': 'native', 'home': '/opt/ezyspeech', 'version': INSTALLED,
-        'releases': [PREVIOUS, INSTALLED], 'state': '/var/lib/ezyspeech',
+        'releases': [PREVIOUS, INSTALLED], 'state': '/var/lib/ezyspeech', 'rollback_to': PREVIOUS,
         'health': {'listener': True, 'console': True, 'version': INSTALLED,
                    'port': 1915, 'admin_port': 1916, 'listeners': 3},
         'addresses': {'listener': 'https://ezyspeech.example.org', 'console': None,

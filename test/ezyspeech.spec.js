@@ -141,4 +141,10 @@ test('names a Podman install, and shows its one container', async ({ page }) => 
     const usage = app.locator('.pf-v6-c-card', { has: app.getByRole('heading', { name: 'Usage' }) });
     await expect(usage.getByText('Container')).toBeVisible();
     await expect(usage.getByText('CPU: 1.5%')).toBeVisible();
+
+    // 4.2.0 is kept too, newer than the 4.1.9 in use: a rollback still goes
+    // to the older one, as `ezyspeech rollback` would.
+    await app.getByRole('tab', { name: 'Updates' }).click();
+    await expect(app.getByRole('button', { name: 'Roll back to 4.1.8' })).toBeVisible();
+    await expect(app.getByRole('button', { name: 'Roll back to 4.2.0' })).toHaveCount(0);
 });
