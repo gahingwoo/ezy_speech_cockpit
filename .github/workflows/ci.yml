@@ -33,8 +33,9 @@ jobs:
       # made up here and never leaves it.
       - name: Cockpit, a test user, the stand-in ezyspeech and the module
         run: |
-          echo "TEST_PASSWORD=$(openssl rand -hex 16)" >> "$GITHUB_ENV"
-          . "$GITHUB_ENV"
+          TEST_PASSWORD=$(openssl rand -hex 16)
+          echo "::add-mask::$TEST_PASSWORD"
+          echo "TEST_PASSWORD=$TEST_PASSWORD" >> "$GITHUB_ENV"
           sudo TEST_PASSWORD="$TEST_PASSWORD" test/prepare-host.sh
       - name: Browser
         run: npx playwright install --with-deps chromium
@@ -45,7 +46,8 @@ jobs:
         run: |
           curl -sk -o /dev/null -w 'login as the test user: %{http_code}\n' \
                -u "ezytester:$TEST_PASSWORD" https://localhost:9090/cockpit/login || true
-          sudo journalctl --no-pager -n 80 -u 'cockpit*' -t cockpit-session -t cockpit-ws || true
+          sudo journalctl --no-pager --since -2min | grep -v pam_ssh_add | grep -iE 'cockpit|bridge|ezytester|session' | tail -60 || true
+          cockpit-bridge --version || true
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
