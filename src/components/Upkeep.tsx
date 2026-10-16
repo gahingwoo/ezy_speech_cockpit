@@ -13,14 +13,13 @@ import { Radio } from "@patternfly/react-core/dist/esm/components/Radio/index.js
 import { TextInput } from "@patternfly/react-core/dist/esm/components/TextInput/index.js";
 import { Flex, FlexItem } from "@patternfly/react-core/dist/esm/layouts/Flex/index.js";
 import { Stack, StackItem } from "@patternfly/react-core/dist/esm/layouts/Stack/index.js";
-import ArchiveIcon from "@patternfly/react-icons/dist/esm/icons/archive-icon";
 import LockIcon from "@patternfly/react-icons/dist/esm/icons/lock-icon";
 import cockpit from "cockpit";
 
-import { _, CMD, ENV, ezy, ezyJson } from "../ezyspeech.js";
+import { _, CMD, ENV, ezyJson } from "../ezyspeech.js";
 import { Row, plain } from "./Row.jsx";
 
-/* The admin password, made here or typed in, and a backup of everything. */
+/* The admin password, made here or typed in. */
 export function Upkeep({ admin }: { admin: boolean }) {
     const [confirm, setConfirm] = useState(false);
     const [password, setPassword] = useState<string | null>(null);
@@ -53,27 +52,13 @@ export function Upkeep({ admin }: { admin: boolean }) {
         }
     };
 
-    const backup = () => {
-        setBusy("backup");
-        const now = new Date().toISOString();
-        const file = `/var/backups/ezyspeech-${now.slice(0, 19).replace(/[:T]/g, "-")}.tar.gz`;
-        ezy(["backup", file])
-                .then(() => setMessage({ ok: true, text: cockpit.format(_("Saved $0"), file) }))
-                .catch((e: Error) => setMessage({ ok: false, text: e.message }))
-                .finally(() => setBusy(null));
-    };
-
     return (
         <Stack hasGutter>
             <StackItem>
-                <DescriptionList isHorizontal columnModifier={{ lg: "2Col" }} aria-label={_("Password and backups")}>
+                <DescriptionList isHorizontal columnModifier={{ lg: "2Col" }} aria-label={_("Admin password")}>
                     <Row icon={plain(<LockIcon />)} state={_("Hashed")}
                          detail={_("A new one replaces it, and both servers restart")}>
                         {_("The admin password is kept only as a hash, so it cannot be shown")}
-                    </Row>
-                    <Row icon={plain(<ArchiveIcon />)} state={_("Backups")}
-                         detail={_("The settings, the password hash and every transcript, as one file")}>
-                        /var/backups
                     </Row>
                 </DescriptionList>
             </StackItem>
@@ -87,10 +72,6 @@ export function Upkeep({ admin }: { admin: boolean }) {
                     <FlexItem>
                         <Button variant="secondary" isDisabled={!admin || !!busy} isLoading={busy === "password"}
                                 onClick={ask}>{_("Set a new admin password")}</Button>
-                    </FlexItem>
-                    <FlexItem>
-                        <Button variant="secondary" isDisabled={!admin || !!busy} isLoading={busy === "backup"}
-                                onClick={backup}>{_("Back up now")}</Button>
                     </FlexItem>
                 </Flex>
             </StackItem>

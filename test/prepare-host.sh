@@ -37,7 +37,7 @@ echo podman > /etc/fake-ezyspeech-mode.d/ezypodman
 # one wherever it looks.
 install -m 755 "$here/fake-ezyspeech" /usr/local/bin/ezyspeech
 ln -sf /usr/local/bin/ezyspeech /usr/bin/ezyspeech
-rm -f /tmp/fake-ezyspeech.log
+rm -f /tmp/fake-ezyspeech.log /tmp/fake-ezyspeech-auto
 
 rm -rf /usr/share/cockpit/ezyspeech
 mkdir -p /usr/share/cockpit/ezyspeech

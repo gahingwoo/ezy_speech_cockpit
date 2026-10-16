@@ -41,6 +41,12 @@ export type Status = {
     containers?: Record<string, string>;
 };
 
+export type Backups = {
+    dir: string;
+    backups: { file: string; name: string; size: number; time: number; auto: boolean }[];
+    auto: { on: boolean; when: string; keep: number; possible: boolean };
+};
+
 export type Check = { installed: string; latest: string; update_available: boolean; notes: string; url: string };
 
 function versionKey(v: string): number[] {

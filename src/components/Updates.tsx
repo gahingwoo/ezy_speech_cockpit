@@ -18,7 +18,9 @@ import { _, ezyJson, ezyLines, rollbackTarget, type Check, type Status } from ".
 import { Confirm } from "./Confirm.jsx";
 import { OutLink, Row, info, ok, plain, warn } from "./Row.jsx";
 
-export function Updates({ status, admin, refresh }: { status: Status; admin: boolean; refresh: () => void }) {
+export function Updates({ status, admin, refresh, onCheck }: {
+    status: Status; admin: boolean; refresh: () => void; onCheck?: (check: Check | null) => void
+}) {
     const [check, setCheck] = useState<Check | null>(null);
     const [checking, setChecking] = useState(false);
     const [checkError, setCheckError] = useState<string | null>(null);
@@ -39,6 +41,7 @@ export function Updates({ status, admin, refresh }: { status: Status; admin: boo
     }, []);
 
     useEffect(() => { doCheck() }, [doCheck]);
+    useEffect(() => { onCheck?.(check) }, [check, onCheck]);
 
     // Runs update or rollback, following the PROGRESS and FAILED lines the
     // command prints for exactly this.

@@ -48,9 +48,9 @@ test('switches between its tabs', async ({ page }) => {
     await expect(app.getByRole('button', { name: 'Roll back to 4.1.8' })).toBeVisible();
     await expect(app.getByText('Listener page, port 1915, 3 listening now')).toBeHidden();
 
-    await app.getByRole('tab', { name: 'Password and backups' }).click();
+    await app.getByRole('tab', { name: 'Admin password' }).click();
     await expect(app.getByText('Hashed', { exact: true })).toBeVisible();
-    await expect(app.getByRole('button', { name: 'Back up now' })).toBeVisible();
+    await expect(app.getByRole('button', { name: 'Set a new admin password' })).toBeVisible();
     await expect(app.getByRole('button', { name: 'Update to 4.2.0' })).toBeHidden();
 });
 
@@ -92,7 +92,7 @@ test('asks before stopping, and not before restarting', async ({ page }) => {
 
 test('sets an admin password typed in, twice', async ({ page }) => {
     const app = await open(page);
-    await app.getByRole('tab', { name: 'Password and backups' }).click();
+    await app.getByRole('tab', { name: 'Admin password' }).click();
     await app.getByRole('button', { name: 'Set a new admin password' }).click();
     await app.getByLabel('I will type it').check();
 
@@ -147,4 +147,39 @@ test('names a Podman install, and shows its one container', async ({ page }) => 
     await app.getByRole('tab', { name: 'Updates' }).click();
     await expect(app.getByRole('button', { name: 'Roll back to 4.1.8' })).toBeVisible();
     await expect(app.getByRole('button', { name: 'Roll back to 4.2.0' })).toHaveCount(0);
+});
+
+test('marks the Updates tab when there is one', async ({ page }) => {
+    const app = await open(page);
+    await expect(app.getByRole('tab', { name: /Updates\s*4\.2\.0/ })).toBeVisible();
+});
+
+test('lists the backups, and asks before restoring one', async ({ page }) => {
+    const app = await open(page);
+    await app.getByRole('tab', { name: 'Backups' }).click();
+    await expect(app.getByText('On a timer', { exact: true })).toBeVisible();
+    await expect(app.getByText('Every Sunday at 14:00, after the service').first()).toBeVisible();
+    const restore = app.getByRole('button', { name: 'Restore', exact: true });
+    await expect(restore).toHaveCount(2);
+
+    await restore.first().click();
+    const dialog = app.getByRole('dialog');
+    await expect(dialog).toContainText('backed up first, so this can be undone');
+    await dialog.getByRole('button', { name: 'Cancel' }).click();
+    await expect(dialog).toBeHidden();
+
+    await restore.first().click();
+    const confirm = app.getByRole('dialog');
+    await confirm.getByRole('button', { name: 'Restore' }).click();
+    await expect(app.locator('.pf-v6-c-alert.pf-m-success .pf-v6-c-alert__title')).toContainText('Restored');
+});
+
+test('turns backups on a timer off and on', async ({ page }) => {
+    const app = await open(page);
+    await app.getByRole('tab', { name: 'Backups' }).click();
+    await app.getByText('Back up on a timer', { exact: true }).click();
+    await expect(app.locator('.pf-v6-c-alert__title')).toContainText('Backups on a timer are off.');
+    await expect(app.getByText('Off', { exact: true })).toBeVisible();
+    await app.getByText('Back up on a timer', { exact: true }).click();
+    await expect(app.locator('.pf-v6-c-alert__title')).toContainText('Backups on a timer are on.');
 });

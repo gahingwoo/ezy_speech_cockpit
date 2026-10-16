@@ -82,6 +82,28 @@ LOG = [
 ]
 
 
+AUTO = '/tmp/fake-ezyspeech-auto'          # "on Sun 14:00", or missing for off
+
+
+def auto_state():
+    try:
+        on, when = open(AUTO).read().split(' ', 1)
+        return {'on': on == 'on', 'when': when.strip(), 'keep': 8, 'possible': True}
+    except OSError:
+        return {'on': True, 'when': 'Sun 14:00', 'keep': 8, 'possible': True}
+
+
+def backups():
+    day = 7 * 24 * 3600
+    now = int(time.time())
+    return [
+        {'file': '/var/backups/ezyspeech/ezyspeech-auto-20261011-140211.tar.gz',
+         'name': 'ezyspeech-auto-20261011-140211.tar.gz', 'size': 1_400_000, 'time': now - day, 'auto': True},
+        {'file': '/var/backups/ezyspeech/ezyspeech-20261004-093000.tar.gz',
+         'name': 'ezyspeech-20261004-093000.tar.gz', 'size': 1_300_000, 'time': now - 2 * day, 'auto': False},
+    ]
+
+
 def main(argv):
     cmd = argv[0] if argv else ''
     if cmd == 'status' and '--json' in argv:
@@ -112,7 +134,23 @@ def main(argv):
         else:
             log(*argv)
             print(json.dumps({'password': 'test-made-pass'}))
-    elif cmd in ('start', 'stop', 'restart', 'rollback', 'backup', 'finish-update'):
+    elif cmd == 'backup' and '--list' in argv:
+        print(json.dumps({'dir': '/var/backups/ezyspeech', 'backups': backups(), 'auto': auto_state()}))
+    elif cmd == 'backup':
+        log(*argv)
+        print('Saved /var/backups/ezyspeech/ezyspeech-20261016-120000.tar.gz')
+    elif cmd == 'auto-backup':
+        log(*argv)
+        if argv[1:2] in (['on'], ['off']):
+            when = argv[argv.index('--when') + 1] if '--when' in argv else auto_state()['when']
+            with open(AUTO, 'w') as f:
+                f.write(f'{argv[1]} {when}')
+    elif cmd == 'restore':
+        log(*argv)
+        for pct, text in ((10, 'Backing up what is there now'), (50, 'Restoring'), (100, 'Restored')):
+            print(f'PROGRESS {pct} {text}', flush=True)
+            time.sleep(0.3)
+    elif cmd in ('start', 'stop', 'restart', 'rollback', 'finish-update'):
         log(*argv)
     else:
         print(f'ezyspeech: unknown command {" ".join(argv)}', file=sys.stderr)
