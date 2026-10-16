@@ -14,7 +14,9 @@ export const _ = cockpit.gettext;
 export const CMD = "ezyspeech";
 // Administrative access runs commands with sudo's PATH, which on Red Hat-like
 // systems leaves out /usr/local/bin, where the installer puts the command.
-export const ENV = ["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"];
+// EZY_LANG: the command words its progress steps in Cockpit's language.
+export const ENV = ["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    `EZY_LANG=${cockpit.language || "en"}`];
 
 export type Usage = {
     processes: { name: "listener" | "console" | "container"; memory: number | null;
